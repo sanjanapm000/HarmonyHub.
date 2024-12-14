@@ -1,0 +1,255 @@
+<%- include("../../views/partials/admin/header") %>
+
+<style>
+    .main {
+        display: inline-flex;
+        flex-direction: column;
+        column-gap: 15px;
+    }
+
+    .mybtn {
+        margin: 20px;
+    }
+
+    .box-main {
+        width: 300px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin: 100px;
+        margin-left: 500px;
+    }
+    .report-heading {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-decoration: underline;
+    }
+
+    .report-summary {
+        margin-top: 20px;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .report-table th, .report-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+
+    .report-table th {
+        background-color: #f2f2f2;
+    }
+
+    .download-buttons {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .download-buttons button {
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    .download-buttons button:hover {
+        background-color: #45a049;
+    }
+    .report-container {
+        width: 80%;
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+    .order-details {
+        margin-top: 20px;
+    }
+
+    .order-item {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f4f4f4;
+    }
+
+    .order-details h4 {
+        margin-top: 10px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .h4order{
+        text-align: center;
+    }
+    .megaborder{
+        border: 2px solid black;
+        padding: 12px;
+    }
+</style>
+
+<h3 class="text-center"><strong>Sales Report</strong></h3>
+<div class="box-main">
+    <form id="reportForm" class="main">
+        <label for="reportType">Select Report Type:</label>
+        <select id="reportType" name="reportType">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+            <option value="custom">Custom Date Range</option>
+        </select>
+
+        <div id="customDateRange" style="display: none;">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" name="startDate">
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" name="endDate">
+        </div>
+
+        <button type="submit" class="btn btn-success mybtn">Generate Report</button>
+    </form>
+</div>
+
+<div id="reportContainer"></div>
+
+<%- include("../../views/partials/admin/footer") %>
+
+<script>
+    // Toggle custom date range visibility
+    document.getElementById('reportType').addEventListener('change', function () {
+        const customDateRange = document.getElementById('customDateRange');
+        customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+
+    // Handle report form submission
+    document.getElementById('reportForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        
+        // Remove date range if not using custom report type
+        if (formData.get('reportType') !== 'custom') {
+            formData.delete('startDate');
+            formData.delete('endDate');
+        }
+
+        // Convert FormData to JSON object
+        const data = Object.fromEntries(formData);
+
+        const response = await fetch('/admin/generate-sales-report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+            const reportData = await response.json();
+            console.log("reportData",reportData);
+            
+
+            // Display the summary of the report
+            const summaryHTML = `
+            <div  class="megaborder">
+
+            <div class="report-heading">Sales Report</div>
+                <div class="report-summary">
+                    <p><strong>Total Sales Count:</strong> ${reportData.totalSalesCount}</p>
+                    <p><strong>Total Order Amount:</strong> ${reportData.totalOrderAmount}</p>
+                    <p><strong>Total Discount:</strong> ${reportData.totalDiscount}</p>
+                    
+                </div>
+            `;
+
+            // Display the order details section
+            const ordersHTML = `
+                <div class="order-details">
+                    <h4 class="h4order">Order Details:</h4>
+                    ${reportData.orders.map(order => `
+                        <div class="order-item">
+                            <p><strong>Order ID:</strong> ${order._id}</p>
+                            <p><strong>Order Date:</strong> ${new Date(order.orderDate).toLocaleString()}</p>
+                            <p><strong>Grand Total:</strong> ${order.grandTotalCost}</p>
+                            <p><strong>Discount:</strong> ${order.discountAmount}</p>
+                           
+                        </div>
+                    `).join('')}
+                </div>
+                </div>
+            `;
+
+
+            const dynamicBorderHTML = `
+                <div class="report-container">
+                    ${summaryHTML}
+                    ${ordersHTML}
+                </div>
+            `;
+
+            // Append the generated content to the container
+            document.getElementById('reportContainer').innerHTML = summaryHTML + ordersHTML;
+
+            // Display download buttons
+            const downloadButtonsHTML = `
+                <div class="download-buttons">
+                    <button onclick="downloadReport('pdf')">Download as PDF</button>
+                    <button onclick="downloadReport('excel')">Download as Excel</button>
+                </div>
+            `;
+            document.getElementById('reportContainer').innerHTML += downloadButtonsHTML;
+
+        } else {
+            console.error('Error generating sales report:', error);
+            alert('Error generating report');
+        }
+    });
+
+    // Download the report as PDF or Excel
+    function downloadReport(format) {
+    const formData = new FormData(document.getElementById('reportForm'));
+    formData.set('downloadFormat', format); // Set download format dynamically
+
+    fetch('/admin/generate-sales-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(formData))
+    }).then(response => {
+        if (response.ok) {
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'sales_report';
+
+            response.blob().then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            });
+        } else {
+            alert('Error generating the report file.');
+        }
+    });
+}
+
+
+</script>

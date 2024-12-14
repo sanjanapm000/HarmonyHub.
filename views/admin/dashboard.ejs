@@ -1,0 +1,443 @@
+<%-include('../../views/partials/admin/header')%>
+    <style>
+        body {
+            background-color: #f2f2f7;
+            color: #ddd;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: #fff;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .sidebar a {
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #ddd;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+
+        .sidebar .active {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        /* Header */
+        .header {
+            background-color: #2c2c3e;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 250px;
+            width: calc(100% - 250px);
+            z-index: 1;
+        }
+
+        .header .search-bar {
+            width: 300px;
+            position: relative;
+        }
+
+        .header .search-bar input {
+            width: 100%;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #1e1e2f;
+            color: #ddd;
+            padding-left: 30px;
+        }
+
+        .header .search-bar i {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            color: #ddd;
+        }
+
+        .header .profile-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .profile-actions .profile-icon {
+            margin-right: 20px;
+            color: #ddd;
+            font-size: 18px;
+        }
+
+        .header .profile-actions .logout-btn {
+            color: #ddd;
+            background-color: #d9534f;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 250px;
+            padding: 80px 20px 20px;
+            /* Adjusted padding to fit header */
+        }
+
+        /* Top cards */
+        .card {
+            background-color: #2c2c3e;
+            border: none;
+            color: #ddd;
+            margin: 10px 0;
+        }
+
+        .card .card-body h5 {
+            font-size: 24px;
+            color: #ddd;
+        }
+
+        /* Chart */
+        .chart-container {
+            padding: 20px;
+            background-color: #2c2c3e;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        /* Filter */
+        .filter-section {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .filter-section input {
+            background-color: #2f2f30;
+            border: none;
+            color: #ddd;
+            padding: 8px;
+            margin: 0 5px;
+        }
+
+        .filter-section button {
+            background-color: #d9534f;
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            margin-left: 10px;
+        }
+
+        /* Download button */
+        .download-btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            margin-top: 20px;
+        }
+
+        #card {
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            background-color: #111;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: rgb(249, 246, 246);
+            font-weight: bold;
+            font-size: 1.2rem;
+
+        }
+
+        .card-body {
+            padding: 1rem;
+
+
+
+        }
+
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            padding: 10px 15px;
+        }
+
+        .list-group-item span {
+            font-weight: bold;
+        }
+
+        #rows {
+            margin-left: 200px;
+        }
+
+        #card {
+            color: black;
+        }
+
+        .list-group {
+            color: #111;
+        }
+
+        #ledgerbook {
+
+            margin-left: 466px;
+            margin-top: -85px;
+        }
+    </style>
+    </head>
+
+
+    <!-- Main Content -->
+    <!-- Main content -->
+    <div class="main-content">
+        <div class="row">
+            <!-- Sales data -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 id="totalSalesToday">₹ 0.00</h5>
+                        <p>Today's Sales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 id="totalSalesMonth">₹ 0.00</h5>
+                        <p>This Month's Sales</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filter-section">
+            <select id="salesFilter" class="form-control">
+                <option value="daily">Daily</option>
+                <option value="monthly">Monthly</option>
+            </select>
+            <input type="date" id="startDate" placeholder="Start Date" class="form-control" />
+            <input type="date" id="endDate" placeholder="End Date" class="form-control" />
+            <button id="filterBtn" class="btn btn-primary">Filter</button>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <canvas id="salesChart"></canvas>
+        </div>
+
+    </div>
+<br><br><br>
+    <!-- Generate Ledger Book (PDF) -->
+    <div class="row mt-4">
+        <div class="col-md-12" id="ledgerbook">
+            <a href="admin/generate-ledger" class="btn btn-success" target="_blank">Generate Ledger
+                Book (PDF)</a>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row" id="rows">
+            <!-- Top Selling Products -->
+            <div class="col-md-4">
+                <div class="card ">
+                    <div class="card-header ">
+                        Top Selling Products
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <% if (topSellingProducts && topSellingProducts.length > 0) { %>
+                                <% topSellingProducts.forEach(product => { %>
+                                    <li class="list-group-item">
+                                        <strong><%= product.productName %></strong> - Sold: <%= product.salesCount %>
+                                    </li>
+                                <% }) %>
+                            <% } else { %>
+                                <li class="list-group-item">No top selling products found.</li>
+                            <% } %>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Selling Categories -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Top Selling Categories
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <% if (topSellingCategories && topSellingCategories.length > 0) { %>
+                                <% topSellingCategories.forEach(category => { %>
+                                    <li class="list-group-item">
+                                        <strong><%= category.name %></strong> - Sold: <%= category.totalSales %>
+                                    </li>
+                                <% }) %>
+                            <% } else { %>
+                                <li class="list-group-item">No top selling categories found.</li>
+                            <% } %>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <script>
+        const salesChartElement = document.getElementById('salesChart').getContext('2d');
+        let salesChart;
+
+        // Fetch sales data based on the selected filter (daily or monthly)
+        const fetchSalesData = async (filter, startDate, endDate) => {
+            try {
+                const response = await fetch(`/admin/sales-data?filter=${filter}&startDate=${startDate}&endDate=${endDate}`);
+                const data = await response.json();
+                if (data.success) {
+                    updateSalesData(data.data);
+                } else {
+                    alert('Error fetching sales data');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching sales data');
+            }
+        };
+
+        // Update the sales data on the page
+        const updateSalesData = (data) => {
+            let totalSalesToday = 0;
+            let totalSalesMonth = 0;
+
+            if (data.length > 0) {
+
+                if (data[0]._id.day) {
+                    // Daily Sales data
+                    const today = new Date();
+                    const todayDateString = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+
+                    // Find today's sales data by matching the date
+                    const todayData = data.find(item => {
+                        const salesDate = `${item._id.year}-${(item._id.month).toString().padStart(2, '0')}-${(item._id.day).toString().padStart(2, '0')}`;
+                        return salesDate === todayDateString;
+                    });
+
+                    // If there's data for today, update the totalSalesToday
+                    if (todayData) {
+                        totalSalesToday = todayData.totalSales;
+                    }
+                    document.getElementById('totalSalesToday').textContent = `₹${totalSalesToday.toFixed(2)}`;
+
+                }
+
+                if (data[0]._id.month) {
+                    // Monthly Sales data
+                    totalSalesMonth = data.reduce((sum, item) => sum + item.totalSales, 0);
+                    document.getElementById('totalSalesMonth').textContent = `₹${totalSalesMonth.toFixed(2)}`;
+                }
+
+                updateChart(data);
+            }
+        };
+
+        // Update the chart with the new sales data
+        const updateChart = (data) => {
+            const labels = data.map(item => {
+                if (item._id.day) {
+                    return `${item._id.day}/${item._id.month}/${item._id.year}`;
+                } else {
+                    return `${item._id.month}/${item._id.year}`;
+                }
+            });
+
+            const salesData = data.map(item => item.totalSales);
+
+            if (salesChart) {
+                salesChart.destroy();
+            }
+
+            salesChart = new Chart(salesChartElement, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Sales',
+                        data: salesData,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        };
+
+        // Handle filter button click
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            const filter = document.getElementById('salesFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            fetchSalesData(filter, startDate, endDate);
+        });
+
+        // Handle the initial sales data fetch with daily filter
+        fetchSalesData('daily', '', '');
+
+        // Download report button (optional)
+        // document.getElementById('downloadReportBtn').addEventListener('click', () => {
+        //     window.location.href = '/admin/sales/report';
+        // });
+
+
+    </script>
+
+
+    </body>
+
+    </html>
+
+
+
+    <%-include('../../views/partials/admin/footer')%>

@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Male_Fashion Template" />
+    <meta name="keywords" content="Male_Fashion, unica, creative, html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>HarmonyHub.</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/elegant-icons.css" type="text/css" />
+    <link rel="stylesheet" href="css/magnific-popup.css" type="text/css" />
+    <link rel="stylesheet" href="css/nice-select.css" type="text/css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/slicknav.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .signup-section {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .signup-form {
+        width: 100%;
+        max-width: 400px;
+      }
+      .social-btns {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .social-btns button {
+        margin: 0 10px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border: none;
+        background-color: transparent;
+      }
+      .social-btns img {
+        width: 24px;
+        height: 24px;
+      }
+      .sign-in-link {
+        color: #333;
+        text-decoration: none;
+      }
+      .sign-in-link:hover {
+        color: #ff7f50;
+      }
+      .spacer {
+        height: 30px; /* Adjust the height as needed */
+      }
+      .error-message{
+        color: red;
+        font-size: 0.75rem;
+        display:none;
+      }
+    </style>
+</head>
+<body>
+    <div class="container mt-5 mb-1">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body signup-section">
+                        <h3 class="card-title text-center">Sign Up</h3>
+                        <%if(locals.message){%>
+                        <div class="alert alert-danger"><%=message%></div>
+                        <%}%>
+                        <form class="signup-form" action="/signup" method="POST" id="signform">
+                            <div class="form-group">
+                                <label for="name">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name"  />
+                                <div class="error-message" id="error1"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" />
+                                <div class="error-message" id="error2"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone number"  />
+                                <div class="error-message" id="error3"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Password"  />
+                                <div class="error-message" id="error4"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirm-password" name="confirm-password" placeholder="Confirm Password"  />
+                                <div class="error-message" id="error5"></div>
+                            </div>
+                            <button type="submit" class="btn btn-block" style="background-color: rgb(201, 138, 232);">Sign Up</button>
+                            <div class="mt-3 text-center">
+                                <p>or Sign Up with</p>
+                            </div>
+                            <div class="social-btns">
+                                <a href="/auth/google" id="googleSignIn">
+                                    <img src="img/google.png" alt="Google Logo" />
+                                </a>&nbsp;&nbsp;&nbsp;
+                                <a href="/auth/facebook" id="facebookSignIn">
+                                    <img src="img/fb2.png" alt="Facebook Logo" />
+                                </a>
+                            </div>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="/login" class="sign-in-link">Already registered? Log in</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="spacer"></div>
+    <%- include("../../views/partials/user/footer") %>
+
+<script>
+    const nameid = document.getElementById('name');
+    const emailid = document.getElementById('email');
+    const phoneid = document.getElementById('phone');
+    const passid = document.getElementById('password');
+    const cpassid = document.getElementById('confirm-password');
+    const error1 = document.getElementById('error1');
+    const error2 = document.getElementById('error2');
+    const error3 = document.getElementById('error3');
+    const error4 = document.getElementById('error4');
+    const error5 = document.getElementById('error5');
+    const signform = document.getElementById('signform');
+
+
+
+    function nameValidateChecking(e){
+       const nameval = nameid.value;
+       const namepattern=/^[A-Za-zÀ-ÿ]+(?:\s[A-Za-zÀ-ÿ]+)*$/;
+
+       if(nameval.trim()===''){
+        error1.style.display="block";
+        error1.innerHTML="Name field cannot be empty"
+       }else if(!namepattern.test(nameval)){
+        error1.style.display="block";
+        error1.innerHTML="Name field can only contain alphabets and spaces"
+       }else if(!namepattern.test(nameval)){
+        error1.style.display="block";
+        error1.innerHTML="Name must contain minimum 5 characters and maximum 20 characters";
+       }
+       else{
+        error1.style.display="none";
+        error1.innerHTML="";
+       }
+    }
+
+    function emailValidateChecking(e){
+       const emailval = emailid.value;
+       const emailpattern=/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+       if(emailval.trim()===''){
+        error2.style.display="block";
+        error2.innerHTML="Email field cannot be empty"
+       }else if(!emailpattern.test(emailval)){
+        error2.style.display="block";
+        error2.innerHTML="Invalid email"
+       }else{
+        error2.style.display="none";
+        error2.innerHTML="";
+       }
+    }
+
+    function phoneValidateChecking(e) {
+    const phoneval = phoneid.value;
+
+    
+    error3.style.display = "none";
+    error3.innerHTML = "";
+
+    if (phoneval.trim() === '') {
+        error3.style.display = "block";
+        error3.innerHTML = "Phone field cannot be empty";
+    } else if (phoneval.length !== 10) {
+        error3.style.display = "block";
+        error3.innerHTML = "Enter a 10 digit number";
+    } else if (!/^\d+$/.test(phoneval)) {
+        error3.style.display = "block";
+        error3.innerHTML = "Phone number must contain only digits";
+    } else {
+        
+        error3.style.display = "none";
+        error3.innerHTML = "";
+    }
+}
+    
+    function passValidateChecking(e){
+       const passval = passid.value;
+       const cpassval = cpassid.value;
+       const passwordpattern=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>?/~`-]).{8,}$/;
+
+
+       if(passval.trim()===''){
+        error4.style.display="block";
+        error4.innerHTML="Password cannot be empty"
+       }else if(passval.length<8){
+        error4.style.display="block";
+        error4.innerHTML="Password must be atleast 8 characters long"
+       }else if(!passwordpattern.test(passval)){
+        error4.style.display="block";
+        error4.innerHTML="Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character";
+       }else{
+        error4.style.display="none";
+        error4.innerHTML="";
+       }
+
+       if(passval !== cpassval){
+        error5.style.display="block";
+        error5.innerHTML="Password and confirm password do not match."
+       }else{
+        error5.style.display="none";
+        error5.innerHTML="";
+       }
+
+       if(cpassval.trim()===""){
+        error5.style.display="block";
+        error5.innerHTML="Confirm password cannot be empty";
+       }
+    }
+
+
+    document.addEventListener('DOMContentLoaded',()=>{
+        signform.addEventListener('submit',(e)=>{
+             nameValidateChecking();
+             emailValidateChecking();
+             phoneValidateChecking();
+             passValidateChecking();
+             
+             if(!nameid||!emailid||!phoneid||!passid||!error1||!error2||!error3||!error4||!error5||!signform){
+                console.error("One or more elements not found")
+             }
+
+             if(error1.innerHTML||error2.innerHTML||error3.innerHTML||error4.innerHTML||error5.innerHTML){
+                e.preventDefault()
+             }
+        })
+    })
+</script>
+
+
+
+</body>
+</html>

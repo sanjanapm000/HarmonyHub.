@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+
+        #wrapper {
+            display: flex;
+            transition: all 0.3s ease;
+        }
+
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: 250px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        #sidebar-wrapper.toggled {
+            margin-left: -250px; /* Hide the sidebar */
+        }
+
+        #sidebar-wrapper .list-group-item {
+            border-radius: 0;
+        }
+
+        #sidebar-wrapper .sidebar-heading {
+            margin-bottom: 20px; /* Add spacing below the heading */
+        }
+
+        #page-content-wrapper {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+        }
+    </style>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class=" border-right" id="sidebar-wrapper" >
+            <div class="sidebar-heading text-center bold">HarmonyHub.</div>
+            <div class="list-group list-group-flush">
+                <a href="/admin/dashboard" class="list-group-item list-group-item-action bg-light">Dashboard</a>
+                <a href="/admin/users" class="list-group-item list-group-item-action bg-light">Customers</a>
+                <a href="/admin/category" class="list-group-item list-group-item-action bg-light">Category</a>
+                <a href="/admin/addProducts" class="list-group-item list-group-item-action bg-light">Add Product</a>
+                <a href="/admin/products" class="list-group-item list-group-item-action bg-light">Products</a>
+                <a href="/admin/coupon" class="list-group-item list-group-item-action bg-light">Coupon</a>
+                <a href="#" class="list-group-item list-group-item-action bg-light">Banner</a>
+                <a href="/admin/orderManagement" class="list-group-item list-group-item-action bg-light">Orders</a>
+                <a href="/admin/generate-sales-report" class="list-group-item list-group-item-action bg-light">Sales Report</a>
+
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-link" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="ml-auto">
+                        <span class="navbar-text">
+                            User Profile
+                        </span>
+                        <a href="/admin/logout" class="btn btn-sm ml-2" style="background-color: rgb(215, 110, 215);color: white;">Logout</a>
+                    </div>
+                </div>
+            </nav>

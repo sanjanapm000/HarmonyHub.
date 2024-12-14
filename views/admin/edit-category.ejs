@@ -1,0 +1,105 @@
+<%- include("../../views/partials/admin/header") %>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-60">
+            <!-- <form method="post" action="/admin/editCategory/<%= category._id %>" id="editCategoryForm"> -->
+                <form method="post" action="/admin/editCategory/<%= category._id %>" id="editCategoryForm" data-category-id="<%= category._id %>">
+
+                
+                <div class="mb-4 mt-30">
+                    <label for="category_name" class="form-label"> Name</label>
+                    <input type="text" name="categoryName" value="<%= category.name %>" class="form-control border" id="categoryName" />
+                    <div class="error-message" id="errorCategoryName" style="color: red;"></div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control border" id="description"><%= category.description %></textarea>
+                    <div class="error-message" id="errorDescription" style="color: red;"></div>
+                </div>
+                 <!-- Display the error message here if it exists -->
+                 <% if (typeof errorCategoryName !== 'undefined') { %>
+                    <div class="alert alert-danger" role="alert">
+                        <%= errorCategoryName %>
+                    </div>
+                <% } %>
+                <div class="d-grid text-end mt-30 col-md-5">
+                    <button class="btn btn-primary" type="submit" style="margin:0 160px;width:200px" id="update_btn">Update category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<%- include("../../views/partials/admin/footer") %>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("editCategoryForm");
+    const categoryName = document.getElementById("categoryName");
+    const description = document.getElementById("description");
+    const errorCategoryName = document.getElementById("errorCategoryName");
+    const errorDescription = document.getElementById("errorDescription");
+
+    // Function to check if category name exists
+    async function checkCategoryNameExists(categoryNameValue, categoryId) {
+        try {
+            const response = await fetch('/admin/checkCategoryName', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ categoryName: categoryNameValue, categoryId: categoryId })
+            });
+            
+            const result = await response.json();
+            return result.exists; // Return true if name exists, false otherwise
+        } catch (error) {
+            console.error('Error checking category name:', error);
+            return false;
+        }
+    }
+
+    // Validation function
+    form.addEventListener("submit", async (e) => {
+        let isValid = true;
+        // Reset error messages
+        errorCategoryName.innerHTML = '';
+        errorDescription.innerHTML = '';
+
+        const categoryNameValue = categoryName.value.trim();
+        const categoryId = form.getAttribute('data-category-id'); // Add data-category-id to the form
+
+        // Category Name validation
+        if (!categoryNameValue) {
+            errorCategoryName.innerHTML = 'Category Name cannot be empty.';
+            isValid = false;
+        } else if (categoryNameValue.length < 5) {
+            errorCategoryName.innerHTML = 'Category Name must be at least 5 characters.';
+            isValid = false;
+        } else if (categoryNameValue.length > 20) {
+            errorCategoryName.innerHTML = 'Category Name must not exceed 20 characters.';
+            isValid = false;
+        } else {
+            // Check if category name already exists
+            const nameExists = await checkCategoryNameExists(categoryNameValue, categoryId);
+            if (nameExists) {
+                errorCategoryName.innerHTML = 'Category Name already exists!';
+                isValid = false;
+            }
+        }
+
+        // Description validation
+        const descriptionValue = description.value.trim();
+        if (!descriptionValue) {
+            errorDescription.innerHTML = 'Description cannot be empty.';
+            isValid = false;
+        }
+
+        // If validation fails, prevent form submission
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+});
+
+</script>

@@ -1,0 +1,263 @@
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
+<%- include("../../views/partials/user/header")%>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    .btn {
+        display: inline-block;
+        padding: 12px 20px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        background-color: #ff6b6b;
+        border: none;
+        border-radius: 5px;
+        transition: background-color 0.3s, transform 0.3s;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .btn:hover {
+        background-color: #ff4c4c;
+        transform: translateY(-2px);
+    }
+
+    .btn:active {
+        transform: translateY(1px);
+    }
+
+    .wishlist-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 50%;
+        color: #ff6b6b;
+        font-size: 18px;
+        z-index: 10;
+        transition: background-color 0.3s, color 0.3s, transform 0.3s;
+        cursor: pointer;
+    }
+
+    .wishlist-btn:hover {
+        background-color: rgba(255, 255, 255, 1);
+        color: #ff4c4c;
+        transform: translateY(-2px);
+    }
+
+    .wishlist-btn:active {
+        transform: translateY(1px);
+    }
+
+    .product-img-action-wrap {
+        position: relative;
+    }
+
+    .product-img {
+        position: relative;
+        display: block;
+        overflow: hidden;
+    }
+
+    .product-cart-wrap {
+        border: 1px solid #eee;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .product-content-wrap h6 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .product-content-wrap h5 {
+        font-size: 16px;
+        color: #ff6b6b;
+        margin-bottom: 10px;
+    }
+
+    .product-content-wrap a {
+        display: inline-block;
+        padding: 8px 12px;
+        background-color: #ff6b6b;
+        color: white;
+        text-transform: uppercase;
+        font-size: 14px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+
+    .product-content-wrap a:hover {
+        background-color: #ff4c4c;
+    }
+</style>
+
+<section class="hero">
+    <div class="hero__slider owl-carousel">
+        <div class="hero__items set-bg" data-setbg="img/hero/man1.jpg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-5 col-lg-7 col-md-8">
+                        <div class="hero__text">
+                            <h6>Feel Your Best, Inside and Out </h6>
+                            <h2>Inner Peace Essentials</h2>
+                            <p>Transform Your Mindset with Every Purchase.</p>
+                            <a href="/products" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero__items set-bg" data-setbg="img/hero/cards.jpg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-5 col-lg-7 col-md-8">
+                        <div class="hero__text">
+                            <h6>Feel Your Best, Inside and Out </h6>
+                            <h2>Inner Peace Essentials</h2>
+                            <p>Transform Your Mindset with Every Purchase.</p>
+                            <a href="#" class="primary-btn">Shop now <span class="arrow_right"></span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="banner spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 offset-lg-4">
+                <div class="banner__item">
+                    <div class="banner__item__pic">
+                        <img src="img/banner/self care candle.jpg" alt="Clothing Collections 2030">
+                    </div>
+                    <div class="banner__item__text">
+                        <h2>Self Care Candle</h2>
+                        <a href="#">Shop now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="banner__item banner__item--middle">
+                    <div class="banner__item__pic">
+                        <img src="img/banner/Anxiety Relief Kit.webp" alt="Accessories" height="340px" width="340px">
+                    </div>
+                    <div class="banner__item__text">
+                        <h2>Anxiety Relief Kit</h2>
+                        <a href="#">Shop now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="banner__item banner__item--last">
+                    <div class="banner__item__pic">
+                        <img src="img/banner/Fidget Ring.webp" alt="Shoes Spring 2030" height="550px" width="450px">
+                    </div>
+                    <div class="banner__item__text">
+                        <h2>Fidget Ring</h2>
+                        <a href="#">Shop now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="product spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <ul class="filter__controls">
+                    <li data-filter=".new-arrivals">New Arrivals</li>
+                </ul>
+            </div>
+        </div>
+        <div class="row product__filter">
+            <% for (let i = 0; i < products.length; i++) { %>
+                <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                    <div class="product-cart-wrap mb-30">
+                        <div class="product-img-action-wrap">
+                            <div class="product-img product-img-zoom">
+                                <a href="/product/<%= products[i]._id %>">
+                                    <img class="default-img" src="/uploads/product-images/<%=products[i].productImg[0] %>" alt="<%= products[i].productName %>">
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Wishlist Button (optional) -->
+                        <div class="product-action-l">
+                            <!-- <a aria-label="Add To Wishlist" class="wishlist-btn hover-up" href="/addToWishList?id=<%= products[i]._id %>">
+                                <i class="fas fa-heart"></i> --> <!-- Heart icon -->
+                         <!--   </a>-->
+                         <span class="wishlist-btn" id="wishlist-btn-<%= products[i].id %>" onclick="addToWishlist('<%= products[i].id %>')">
+                            <%= userWishlist.includes(products[i].id) ? '❤️' : '🤍' %>
+                        </span>
+                        </div>
+                        <div class="product-content-wrap">
+                            <h6><%= products[i].productName %></h6>
+                            <p>Price: ₹<%= products[i].salePrice.toLocaleString('en-IN') %> <span class="text-muted"><strike>₹<%= products[i].regularPrice.toLocaleString('en-IN') %></strike></span></p>
+                            <h5>Stocks Left:<%= products[i].quantity %></h5>
+                            <% if (products[i].isOutOfStock) { %>
+                                <div class="out-of-stock-message">Out of Stock</div>
+                            <% } else { %>
+                                <form action="/mycart/<%= products[i]._id %>" method="POST">
+                                    <input type="hidden" name="productId" value="<%= products[i]._id %>">
+                                    <!-- <input type="number" name="quantity" min="1" value="1"> -->
+                                    <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+                                </form>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+function addToWishlist(productId) {
+    $.ajax({
+        url: '/toggleWishlist',  // Updated to use the toggleWishlist route
+        method: 'POST',
+        data: { productId: productId },
+        success: function (response) {
+            if (response.status) {
+                // Update the heart icon based on whether it was added or removed
+                const newIcon = response.added ? '❤️' : '🤍';
+                $('#wishlist-btn-' + productId).html(newIcon);
+
+                // Optionally show a success message
+                Swal.fire({
+                    title: response.added ? 'Added to Wishlist' : 'Removed from Wishlist',
+                    text: response.message,
+                    icon: 'success',
+                    timer: 2000
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'There was an error processing your request',
+                    icon: 'error',
+                    timer: 2000
+                });
+            }
+        },
+        error: function (error) {
+            Swal.fire({
+                title: 'Error',
+                text: 'There was an error processing your request',
+                icon: 'error',
+                timer: 2000
+            });
+        }
+    });
+}
+
+</script>
+<%- include("../../views/partials/user/footer") %>

@@ -1,0 +1,30 @@
+<%- include("../../views/partials/user/header") %>
+
+  <!-- Edit Profile Form -->
+  
+  
+      <div class="card-header " style="margin: 120px;">
+        <h5 class="mb-0 text-center"><b>Edit Profile</b></h5>
+      </div>
+      <div class="card-body">
+        <form action="/update-profile" method="POST" style="margin: 50px;">
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" class="form-control" id="fullName" name="name" value="<%= user.name || '' %>" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="<%= user.email || '' %>" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" class="form-control" id="phone" name="phone" value="<%= user.phone || '' %>" required>
+          </div>
+          <button type="submit" class="btn btn-success">Update</button>
+        </form>
+      </div>
+   
+  
+
+
+<%- include("../../views/partials/user/footer") %>

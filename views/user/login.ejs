@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Responsive Login Form</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            width: 100%;
+            max-width: 400px; /* Adjust the width for better responsiveness */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            width: 100%; /* Full width for the button */
+        }
+        .form-group label {
+            font-size: 0.9rem; /* Slightly larger label size */
+        }
+        .error-message {
+            color: red;
+            font-size: 0.75rem;
+            display: none;
+        }
+        .forgot-password {
+            float: right; /* Align to the right */
+            font-size: 0.9rem; /* Font size for the link */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-center">Log In</h3>
+                <form id="loginform" method="post" action="/login">
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        <input type="email" class="form-control" name="email" id="email" placeholder="Enter email" />
+                        <div id="error1" class="error-message"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" name="password" id="password" placeholder="Password" />
+                        <div id="error2" class="error-message"></div><br>
+                        <%if(locals.message && message.length>0){%>
+                            <div class="alert alert-danger text-center">
+                               <%=message%>
+                            </div>
+                            <%}%>
+                        <a href="/forgot-password" class="forgot-password">Forgot Password?</a>
+                    </div><br>
+                    <div class="mt-3 text-center">
+                      <p>or Sign In with</p>
+                  
+                    <div class="social-btns">
+                      <a href="/auth/google" id="googleSignIn">
+                          <img src="img/google.png" alt="Google Logo" height="40px" width="40px"/>
+                      </a>&nbsp;&nbsp;&nbsp;
+                      <a href="/auth/facebook" id="facebookSignIn">
+                          <img src="img/fb2.png" alt="Facebook Logo" height="40px" width="40px"/>
+                      </a>
+                  </div><br></div>
+                    <button type="submit" class="btn btn-block" style="background-color: rgb(201, 138, 232);">Log In</button>
+                </form>
+                <div class="text-center mt-2">
+                    <p>Not registered? <a href="/signup" class="sign-up-link">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const emailid = document.getElementById("email");
+        const passid = document.getElementById("password");
+        const error1 = document.getElementById("error1");
+        const error2 = document.getElementById("error2");
+        const loginform = document.getElementById("loginform");
+  
+        function emailValidateChecking(e) {
+          const emailval = emailid.value;
+          const emailpattern =
+            /^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/;
+  
+          if (!emailpattern.test(emailval)) {
+            error1.style.display = "block";
+            error1.innerHTML = "Invalid Format";
+          } else {
+            error1.style.display = "none";
+            error1.innerHTML = "";
+          }
+        }
+  
+        function passValidateChecking(e) {
+          const passval = passid.value;
+          if (passval.length < 8) {
+            error2.style.display = "block";
+            error2.innerHTML = "Should contain at least 8 characters";
+          } else {
+            error2.style.display = "none";
+            error2.innerHTML = "";
+          }
+        }
+  
+        document.addEventListener("DOMContentLoaded", function () {
+          loginform.addEventListener("submit", function (e) {
+            emailValidateChecking();
+            passValidateChecking();
+  
+            if (!emailid || !passid || !error1 || !error2 || !loginform) {
+              console.error("One or more elements not found");
+            }
+  
+            if (error1.innerHTML || error2.innerHTML) {
+              e.preventDefault();
+            }
+          });
+        });
+      </script>
+  
+    
+</body>
+</html>
+

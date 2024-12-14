@@ -1,0 +1,784 @@
+<%- include("../../views/partials/user/header") %>
+<head>  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <!-- Include SweetAlert via CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script> -->
+</head>
+  <main class="main">
+    <div class="container">
+      <div class="page-header text-center text-truncate"
+        style="background-image: url('assets/images/page-header-bg.jpg')">
+        <h2 class="page-title">Checkout</h2>
+      </div>
+      <!-- End .page-header -->
+
+      <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          <li class="breadcrumb-item"><a href="/products">Shop</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+        </ol>
+      </nav>
+      <!-- End .breadcrumb-nav -->
+
+
+
+
+
+      <div class="row">
+        <div class="col-lg-9">
+          <div class="checkout">
+            <div class="checkout-discount">
+
+              <div class="checkout-discount">
+                <form action="#" id="couponApplyForm" class="d-flex">
+                  <input type="text" class="form-control flex-grow-1 mr-2" name="couponCode" required
+                    id="appendedInputButton">
+                  <hr><br><br>
+                  <button class="btn btn-primary square-btn" type="submit"><a href=""
+                      style="color: white; margin-right: 18px;">Apply</a></button>
+                </form>
+                <label for="checkout-discount-input" class="text-truncate mt-2">Have a coupon?<span> Click the
+                    button</span> </label>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-danger" id="removeCouponBtn">
+                Remove Coupon
+            </button>
+              
+              <hr>
+              <hr>
+              <style>
+                .square-btn {
+                  width: 10px;
+                  /* Adjust the width as needed */
+                  height: 30px;
+                  /* Adjust the height as needed */
+                  padding: 0;
+                  /* Remove padding */
+                  border-radius: 0;
+                  /* Remove border radius */
+                }
+              </style>
+              <!-- <tr>
+        <td colspan="2">
+          <div class="input-append couponForm">
+            <form id="couponApplyForm">
+              <input class="col-lg-8" name="couponCode" id="appendedInputButton" type="text"
+                placeholder="Enter coupon code">
+              <button class="col-lg-4 btn btn-success" type="submit">Apply!</button>
+            </form>
+          </div>
+        </td>
+      </tr> -->
+
+
+              <!-- End .checkout-discount -->
+
+              <!-- <tr>
+        <td colspan="2">
+          <div class="input-append couponForm">
+            <form id="couponApplyForm">
+              <input class="col-lg-8" name="couponCode" id="appendedInputButton" type="text"
+                placeholder="Enter coupon code">
+              <button class="col-lg-4 btn btn-success" type="submit">Apply!</button>
+            </form>
+          </div>
+        </td>
+      </tr> -->
+
+
+
+
+
+
+
+
+
+
+              <!-- End .checkout-discount -->
+
+              <body>
+
+                <div class="container">
+                  <div class="row">
+                    <div class="col-lg-9 col-md-9 col-sm-12">
+                      <div class="row userInfo">
+                        <div class="col-xs-12 col-sm-12">
+
+                          <div class="w100 clearfix">
+                            <div class="row userInfo">
+
+                              <div style="clear: both"></div>
+
+                              <div class="onepage-checkout col-lg-12">
+                                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                                  <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="headingOne">
+                                      <p class="panel-title">
+                                        <a role="button" data-toggle="collapse" data-parent="#accordion"
+                                          href="#BillingInformation" aria-expanded="true"
+                                          aria-controls="BillingInformation">
+                                          <button type="button" class="btn btn-primary">Choose Address</button>
+
+                                        </a>
+                                      </p>
+                                    </div>
+                                    <div id="BillingInformation" class="panel-collapse collapse in" role="tabpanel"
+                                      aria-labelledby="BillingInformation" style="float: left; width: 50%;">
+                                      <div class="panel-body">
+                                        <div style="clear: both"></div>
+                                       <!-- Address Choosing Section -->
+<div class="form-group required maxwidth300">
+  <form action="/checkout" method="POST">
+  <label for="SelectAddress">Select Address <sup>*</sup></label>
+
+  <select class="form-control" required aria-required="true" id="SelectAddress" name="addressChosen">
+    <option value="">Choose your address</option>
+    <% addressData.forEach(function(userAddress) { %>
+      <% userAddress.address.forEach(function(address) { %>
+        <option value="<%= address._id %>">
+          <%= address.addressType %> - <%= address.name %> 
+          (<%= address.city %>, <%= address.state %>, <%= address.pincode %>)
+        </option>
+      <% }); %>
+    <% }); %>
+  </select>
+
+  <br>
+  
+  <div id="selectedAddress" style="margin-top: 10px; font-weight: bold; color: green;"></div>
+  <button type="submit" onclick="showAddress()" class="btn btn-primary">Submit</button>
+
+  <a class="btn" id="editAddressButton" role="button" style="color: white;">Edit Address</a>
+</form>
+</div>
+
+
+<script>
+
+  document.getElementById('editAddressButton').addEventListener('click', function () {
+    let selectedAddressId = document.getElementById('SelectAddress').value;
+    console.log(selectedAddressId);
+    
+    if (selectedAddressId) {
+      window.location.href = "/editAddress/?id=" + selectedAddressId;
+    } else {
+      alert('Please select an address before editing.');
+    }
+  });
+
+  
+  function showAddress() {
+  // Get the selected address ID from the dropdown
+  const selectElement = document.getElementById('SelectAddress');
+  const selectedAddressId = selectElement.value;
+
+  // Get the selected option's text (address details)
+  const selectedOption = selectElement.options[selectElement.selectedIndex];
+  const selectedAddressText = selectedOption ? selectedOption.text : '';
+
+  // Check if a valid address is selected
+  if (selectedAddressId) {
+    // Update the selected address display in the div
+    const selectedAddressDiv = document.getElementById('selectedAddress');
+    selectedAddressDiv.textContent = `Selected Address: ${selectedAddressText}`;
+  } else {
+    // If no address is selected, clear the display or show a message
+    const selectedAddressDiv = document.getElementById('selectedAddress');
+    selectedAddressDiv.textContent = 'Please select a valid address.';
+  }
+}
+
+
+
+
+
+
+
+
+</script>
+
+                                        <!-- End of Address Choosing Section -->
+                                        <!-- Other Checkout Sections -->
+                                        <!-- Add your other checkout sections here -->
+                                      </div>
+                                    </div>
+
+                                  </div>
+                                </div>
+                                <!--onepage-checkout-->
+                              </div>
+                            </div>
+                            <!--/row end-->
+                          </div>
+
+                        </div>
+                      </div>
+                      <!--/row end-->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Include your other HTML, CSS, and JS code here -->
+
+              </body>
+
+            </div>
+            <!-- End .checkout -->
+          </div>
+          <div>
+            <hr><br>
+          </div>
+
+          <!-- ------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
+
+
+
+
+
+
+
+          <!-- --------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
+
+
+
+          <aside class="col-lg-8">
+            <div class="summary">
+              <h3 class="summary-title">Your Order</h3>
+
+              <!-- Place the table outside of the loop -->
+              <table class="table table-summary">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <!-- Loop through userCartData to display each product -->
+                  <% userCartData.forEach(function(item, index) { %>
+                    <tr>
+                      <td>
+                        <a href="/product/<%= item.productId._id %>">
+                          <%= item.productId.productName %>
+                        </a>
+                      </td>
+                      <td id="productPrice<%= index %>" class="price-col">₹<%= item.productId.salePrice %>
+                      </td>
+                    </tr>
+                    <% }); %>
+
+                      <!-- Display Subtotal -->
+                      <tr class="summary-subtotal">
+                        <td>Subtotal:</td>
+                        <td>
+                          ₹ <%= grandTotal %>
+                        </td>
+                      </tr>
+              
+                      <!-- Display Shipping -->
+                      <tr>
+                        <td>Shipping:</td>
+                        <td>Free shipping</td>
+                      </tr>
+                     
+
+                      <tr id="couponAppliedRow" style="display: none;">
+                        <td>Coupon Applied:</td>
+                        <td id="appliedCoupon"></td>
+                    </tr>
+                    <!-- Discount Row, initially hidden -->
+                    <tr id="discountRow" style="display: none;">
+                        <td>Discount:</td>
+                        <td id="discountAmount"></td>
+                    </tr>
+                    <!-- New Total After Discount Row, initially hidden -->
+                    <tr id="newTotalRow" style="display: none;">
+                        <td>Total After Discount:</td>
+                        <td id="grandTotalAfterDiscount"></td>
+                    </tr>
+                  
+
+
+                </tbody>
+
+
+
+
+
+
+
+              </table>
+
+              
+              <tr class="summary-total">
+
+
+                <div class="panel-heading" role="tab" id="panel-heading-id">
+                  <h6 class="panel-title">
+                    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse"
+                      data-parent="#accordion" href="#Paymentmethod" aria-expanded="false"
+                      aria-controls="Paymentmethod">
+                      Payment method
+                    </button>
+                  </h6>
+                </div>
+
+                <style>
+                  .panel-heading button {
+                    background-color: #041d39;
+                    /* Blue color for the button background */
+                    color: #ffffff;
+                    /* White color for the button text */
+                    border-radius: 5px;
+                    /* Rounded corners */
+                    border-color: #041d39;
+                    padding: 8px 16px;
+                    /* Padding for the button */
+                    border: none;
+                    /* Remove border */
+                    cursor: pointer;
+                    /* Change cursor to pointer on hover */
+                  }
+
+                  .panel-heading button:hover {
+                    background-color: #ffffff;
+                    /* Darker shade of blue on hover */
+                    color: #000000;
+                  }
+                </style>
+
+
+                <div id="Paymentmethod" class="panel-collapse collapse" role="tabpanel">
+                  <div class="panel-body">
+                    <div class="onepage-payment">
+                      <div style="clear:both;"></div>
+
+
+
+
+                      <!-- <div class="card-paynemt-box payment-method">
+                        <label class="radio-inline" for="CashOnDelivery" aria-controls="CashOnDeliveryCollapse">
+                          <input name="radios" id="COD" value="COD" type="radio">Cash On Delivery
+                        </label>
+                      </div>
+                      <div id="codMessage" style="display: none;">Above 4000, no COD we provide</div> -->
+                      <div class="payment-methods">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="COD" value="COD">
+                            <label class="form-check-label" for="COD">
+                                Cash on Delivery
+                            </label>
+                        </div>
+                        <div id="codMessage" style="display: none;">Above 1000, no COD we provide</div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="razorpay" value="razorpay">
+                            <label class="form-check-label" for="razorpay">
+                                Pay Online (Razorpay)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" id="wallet" name="paymentMethod" value="wallet">
+                          <label class="form-check-label" for="wallet">Pay with Wallet (Balance: ₹<%= walletBalance %>)</label>
+                      </div>
+                    </div>
+                     
+
+                    
+                     <form id="checkoutForm" method="POST" action="/checkout/processPayment">
+                       <input type="hidden" id="currentOrderId" name="currentOrderId" value="<%= currentOrderId %>">
+                                         <button type="submit" id="orderBtn" class="btn btn-outline-primary-2 btn-order btn-block"> 
+                        <span class="btn-text">Place Order</span>
+                        <!-- <span class="btn-hover-text">Proceed to Checkout</span> -->
+                      </button>
+                     </form> 
+                    </div>
+                  </div>
+                </div>
+            </div>
+           
+
+            </tr>
+       
+
+        </div>
+        <!-- End .summary -->
+
+        </aside>
+
+
+
+        <!-- End .col-lg-3 -->
+      </div>
+      <div class="col-lg-12 clearfix mt-4">
+        <ul class="pager">
+          <li class="previous pull-right"><a href="/products"> <i class="fa fa-home"></i> Go to Shop </a></li>
+        </ul>
+      </div>
+      <!-- End .row -->
+    </div>
+    <!-- End .container -->
+  </main>
+  <!-- End .main -->
+
+
+
+
+
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    document.getElementById('removeCouponBtn')?.addEventListener('click', async function() {
+        try {
+            const response = await fetch('/remove-coupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            const result = await response.json();
+    
+            if (result.success) {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Coupon Removed',
+                    text: 'The coupon has been removed successfully.',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    // Reload the page to update the prices
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Failed to remove coupon'
+                });
+            }
+        } catch (error) {
+            console.error('Error removing coupon:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while removing the coupon'
+            });
+        }
+    });
+    </script>
+
+
+<script>
+  // Store the total amount in a JavaScript variable
+  const totalAmount = Number('<%- totalAmount %>') || 0;
+</script>
+
+
+<!-- Payment processing script -->
+<script>
+
+   
+
+  document.getElementById('orderBtn').addEventListener('click', async function(e) {
+    console.log("Order button clicked."); // Log when the button is clicked
+
+      e.preventDefault();
+      const selectElement = document.getElementById('SelectAddress');
+      const selectedAddressId = selectElement.value;
+      const CODElement = document.getElementById('COD');
+
+
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+      if (!paymentMethod) {
+          return Swal.fire({
+              icon: "error",
+              title: "Choose a Payment Method",
+              text: "Please select a payment method to proceed."
+          });
+      }
+
+
+      const totalAmount = Number('<%= grandTotal %>'); // Assuming grandTotal is passed to the template
+      const walletBalance = Number('<%= walletBalance %>');
+      
+   
+//       if ('<%= grandTotal %>' >= 4000) {
+//   CODElement.disabled = true;
+//   CODElement.parentElement.style.display = 'none';
+//   document.getElementById('codMessage').style.display = 'block';
+// }
+                   
+
+
+      if (paymentMethod.value === 'COD') {
+        try {
+        // Send the request to the backend to place the order
+        const response = await fetch('/orderSucess', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // You can send additional data if necessary
+        });
+
+        const data = await response.json();
+
+        // const blockedResponse = await fetch('/checkout/orderPlacedEnd',{
+        //   method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        // })
+
+        // const blockedData = await blockedResponse.json();
+
+       
+
+
+        if (data.success === false) {
+            // Show SweetAlert if the order is not allowed due to grandTotal > 1000
+            if (data.message === "No COD available for orders above 1000 rupees") {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Method Not Available',
+                    text: data.message,  // Message from the server (No COD for grandTotal > 1000)
+                    confirmButtonText: 'OK'
+                });
+            }
+
+             
+
+          //  Show SweetAlert if the order is not allowed due to blocked products
+            
+        }
+         else {
+            // Continue with the order placed success flow
+            window.location.href = '/checkout/orderPlacedEnd';
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while placing the order.');
+    }
+
+          
+      } else if (paymentMethod.value === 'razorpay') {
+          try {
+              // Calculate amount in paise
+              const amountInPaise = Math.round(totalAmount * 100);
+              console.log('Amount in paise:', amountInPaise); // Debug log
+              
+              // Create order on server
+              const response = await fetch('/create-razorpay-order', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                      amount: amountInPaise
+                  }),
+              });
+              
+              const order = await response.json();
+              
+              const options = {
+                  key: '<%- process.env.RAZORPAY_KEY_ID %>', 
+                  amount: amountInPaise,
+                  currency: 'INR',
+                  name: 'HarmonyHub',
+                  description: 'Purchase Payment',
+                  order_id: order.id,
+                  handler: async function (response) {
+                      const verifyResponse = await fetch('/verify-payment', {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                              razorpay_payment_id: response.razorpay_payment_id,
+                              razorpay_order_id: response.razorpay_order_id,
+                              razorpay_signature: response.razorpay_signature
+                          }),
+                      });
+                      
+                      const verifyResult = await verifyResponse.json();
+                      
+                      if (verifyResult.success) {
+                          window.location.href = '/checkout/orderPlacedEnd';
+                      } else {
+                          Swal.fire({
+                              icon: "error",
+                              title: "Payment Failed",
+                              text: "There was an issue with your payment. Please try again."
+                          });
+                      }
+                  },
+                  prefill: {
+                      name: '<%- user.name %>',
+                      email: '<%- user.email %>',
+                  },
+                  theme: {
+                      color: '#3399cc'
+                  }
+              };
+              
+              const rzp = new Razorpay(options);
+              rzp.open();
+              
+          } catch (error) {
+              console.error('Error:', error);
+              Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: "There was an error processing your payment. Please try again."
+              });
+          }
+      } else if (paymentMethod.value === 'wallet'){
+        if (paymentMethod.value === 'wallet') {
+          // Check if the wallet balance is sufficient
+          if (walletBalance < totalAmount) {
+              return Swal.fire({
+                  icon: "error",
+                  title: "Insufficient Balance",
+                  text: "You do not have enough balance in your wallet to complete this transaction."
+              });
+          }
+        }
+        window.location.href = '/checkout/processPayment';
+      }
+    }
+  
+   
+);
+
+  </script>
+  
+
+
+
+
+
+
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    // Define a variable to keep track of the applied coupon count
+    let appliedCouponCount = 0;
+
+    // Attach a submit event listener to the couponApplyForm element
+    document.addEventListener('DOMContentLoaded', function () {
+      const couponApplyFormElement = document.getElementById('couponApplyForm');
+      couponApplyFormElement.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        await couponApply();
+      });
+
+    });
+
+
+// Handle coupon form submission
+$("#couponApplyForm").submit(function (event) {
+    event.preventDefault();
+
+
+    if (appliedCouponCount > 0) {
+      alert("You have already applied a coupon. Only one coupon can be applied at a time.");
+      return;
+    }
+
+
+    const couponCode = $("#appendedInputButton").val(); // Get the coupon code from the input
+    const grandTotal = parseFloat($("#grandTotal span").text()); // Get the grand total from the page
+
+    // Send AJAX request to apply coupon
+    $.ajax({
+        url: "/checkout/applyCoupon",  // The backend route
+        method: "POST",
+        data: { name: couponCode },   // Send the coupon code in the request body
+        success: function (response) {
+            if (response.success) {
+              appliedCouponCount++;
+                // If coupon is applied successfully
+                $("#couponAppliedRow").show();
+                $("#appliedCoupon").text(response.name);  // Show the coupon name
+                $("#discountRow").show();
+                $("#discountAmount").text("₹" + response.discountAmount);  // Show discount amount
+                $("#newTotalRow").show();
+                $("#grandTotalAfterDiscount").text("₹" + response.grandTotalAfterDiscount);  // Show new total after discount
+
+                // Update the subtotal price (if needed)
+                $("#subtotalPrice").text(response.grandTotalAfterDiscount);
+                $("#grandTotal").text("₹" + response.grandTotalAfterDiscount);  // Update grand total
+            } else {
+                // If coupon is not valid or the minimum purchase condition is not met
+                if (response.message === "Coupon does not exist.") {
+                    alert("Invalid coupon code.");
+                } else if (response.message === "Make a purchase of at least ₹" + response.minimumPrice + " to use this coupon.") {
+                    alert("Make a purchase of at least ₹" + response.minimumPrice + " to use this coupon.");
+                }
+
+                // Hide coupon-related rows if coupon is not valid
+                $("#couponAppliedRow").hide();
+                $("#discountRow").hide();
+                $("#newTotalRow").hide();
+            }
+        },
+        error: function () {
+            alert("An error occurred. Please try again.");
+        }
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+    
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <%- include("../../views/partials/user/footer") %>
