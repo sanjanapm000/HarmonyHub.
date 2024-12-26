@@ -153,17 +153,37 @@ const userProfile = async (req,res)=>{
         const userId = req.session.user._id || req.session.user;
         const userData = await User.findById(userId).populate('walletHistory');
         const addressData = await Address.findOne({userId:userId});
+        const page =  parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
         // const userId = req.session.user._id; 
-        const orders = await Order.find({ userId }) ;
+        const totalOrders = await Order.countDocuments({ userId });
+
+        const orders = await Order.find({ userId }) 
+            .populate('cartData.productId') 
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+         
+        const totalPages = Math.ceil(totalOrders / limit);
+        
+        const totalReferralEarnings = userData.walletHistory
+        .filter(transaction => transaction.description === 'Referral Bonus')
+        .reduce((total, transaction) => total + transaction.amount, 0);
+            //  console.log("totalreferralearnings",totalReferralEarnings);
              
         res.render("user-profile",{
             user:userData,
             userAddress:addressData,
             orders,
+            currentPage: page,  
+            totalPages: totalPages, 
+            totalReferralEarnings 
+
         })
     } catch (error) {
         console.error('Error in retrieving profile data ',error);
-        res.send("pageerror")
+        res.render("page-404");
     }
 }
 

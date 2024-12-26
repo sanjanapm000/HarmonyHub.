@@ -63,6 +63,8 @@ router.post("/editProduct/:id",adminAuth,uploads.array("images",4),productContro
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage);
 router.post('/toggle-block', adminAuth, productController.toggleBlockProduct);
 router.post('/update-status',productController.updateProductStatus);
+router.post('/addProductOffer',adminAuth,productController.addProductOffer);
+router.post('/removeProductOffer',adminAuth,productController.removeProductOffer);
 
 
 
@@ -75,6 +77,7 @@ router.get('/orderManagement/shipped/:id', orderController.changeStatusShipped)
 router.get('/orderManagement/delivered/:id', orderController.changeStatusDelivered)
 router.get('/orderManagement/return/:id', orderController.changeStatusReturn)
 router.get('/orderManagement/cancelled/:id', orderController.changeStatusCancelled)
+router.get("/orderStatus/:id", orderController.viewOrderStatus);
 
 
 //coupon management

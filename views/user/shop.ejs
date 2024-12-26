@@ -1,18 +1,19 @@
 <%- include("../../views/partials/user/header") %>
-<style>
+  <style>
     .main-container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
+
     .shop-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
     }
-   
-   
+
+
     .search-form {
       display: flex;
       align-items: center;
@@ -22,8 +23,8 @@
       max-width: 250px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     }
-   
-   
+
+
     .search-input {
       flex: 1;
       padding: 8px 10px;
@@ -32,8 +33,8 @@
       outline: none;
       background-color: transparent;
     }
-   
-   
+
+
     .search-button {
       padding: 8px 15px;
       background-color: #1e918b;
@@ -45,12 +46,13 @@
       margin-right: 5px;
       transition: background-color 0.3s, transform 0.2s;
     }
-   
-   
+
+
     .search-button:hover {
       background-color: #0056b3;
       transform: scale(1.05);
     }
+
     .sidebar {
       padding: 20px;
       border: 1px solid #ddd;
@@ -60,51 +62,51 @@
       width: 250px;
       text-align: center;
     }
-   
-   
+
+
     .filter-section {
       margin-bottom: 20px;
     }
-   
-   
+
+
     .filter-title {
       font-weight: bold;
       margin-bottom: 10px;
       font-size: 16px;
       color: #333;
     }
-   
-   
+
+
     .filter-item {
       margin: 5px 0;
     }
-   
-   
+
+
     .filter-item a {
       text-decoration: none;
       color: #333;
     }
-   
-   
+
+
     .filter-item a:hover {
       color: #007bff;
     }
-   
-   
+
+
     .product-list-container {
       display: flex;
       gap: 20px;
     }
-   
-   
+
+
     .product-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       width: calc(100% - 270px);
     }
-   
-   
+
+
     .product-card {
       width: calc(33.333% - 20px);
       border: 1px solid #ddd;
@@ -113,15 +115,15 @@
       text-align: center;
       position: relative;
     }
-   
-   
+
+
     .product-card img {
       max-width: 100%;
       height: auto;
       border-radius: 5px;
     }
-   
-   
+
+
     .wishlist-btn {
       position: absolute;
       top: 8px;
@@ -132,8 +134,8 @@
       border-radius: 50%;
       cursor: pointer;
     }
-   
-   
+
+
     .add-to-cart-btn {
       background-color: #46698f;
       color: #fff;
@@ -144,16 +146,16 @@
       width: 100%;
       margin-top: 10px;
     }
-   
-   
+
+
     .pagination {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin: 20px 0;
     }
-   
-   
+
+
     .pagination a {
       padding: 8px 12px;
       background-color: #f0f0f0;
@@ -161,29 +163,29 @@
       color: #333;
       text-decoration: none;
     }
-   
-   
+
+
     .pagination .active {
       background-color: #007bff;
       color: #fff;
     }
-   
-   
+
+
     .price-filter {
       padding: 10px;
       background-color: #f9f9f9;
       border-radius: 8px;
       margin-top: 20px;
     }
-   
-   
+
+
     .price-filter .price-options {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-   
-   
+
+
     .price-button {
       padding: 12px 20px;
       background-color: #f1f1f1;
@@ -195,298 +197,344 @@
       text-align: center;
       font-size: 14px;
     }
-   
-   
+
+
     .price-button:hover {
       background-color: #007bff;
       color: white;
       transform: scale(1.05);
     }
-   
-   
+
+
     .price-button:active {
       transform: scale(0.95);
     }
-   
-   
+
+
     .category-brand-container {
       text-align: center;
     }
+
     .product-card.out-of-stock {
-    background-color: #f0f0f0;  /* Light grey background */
-    opacity: 0.6;  /* Slightly transparent */
-    position: relative;
-}
+      background-color: #f0f0f0;
+      /* Light grey background */
+      opacity: 0.6;
+      /* Slightly transparent */
+      position: relative;
+    }
 
-/* Style for the "Out of Stock" message */
-.out-of-stock-message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: red;
-    font-weight: bold;
-    font-size: 18px;
-}
+    /* Style for the "Out of Stock" message */
+    .out-of-stock-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: red;
+      font-weight: bold;
+      font-size: 18px;
+    }
 
-/* Disable "Add to Cart" button for out of stock products */
-.product-card.out-of-stock button {
-    background-color: #ccc;
-    pointer-events: none;  /* Disable interaction with the button */
-    cursor: not-allowed;
-}
+    /* Disable "Add to Cart" button for out of stock products */
+    .product-card.out-of-stock button {
+      background-color: #ccc;
+      pointer-events: none;
+      /* Disable interaction with the button */
+      cursor: not-allowed;
+    }
 
-/* Optional: If you want to hide the "Add to Cart" button entirely for out of stock items */
-.product-card.out-of-stock .add-to-cart-btn {
-    display: none;
-}
-   </style>
-   
-<div class="main-container">
-  <section class="shop-page container">
-    <div class="shop-topbar">
-      <div class="search-bar">
-        <form action="/filter" method="GET" class="search-form">
+    /* Optional: If you want to hide the "Add to Cart" button entirely for out of stock items */
+    .product-card.out-of-stock .add-to-cart-btn {
+      display: none;
+    }
+  </style>
+
+  <div class="main-container">
+    <section class="shop-page container">
+      <div class="shop-topbar">
+        <div class="search-bar">
+          <form action="/filter" method="GET" class="search-form">
             <% if (selectedCategory) { %>
-                <input type="hidden" name="category" value="<%= selectedCategory %>">
-            <% } %>
-            <% if (selectedSortOrder) { %>
-                <input type="hidden" name="sortOrder" value="<%= selectedSortOrder %>">
-            <% } %>
-            <input type="text" 
-                   name="search" 
-                   placeholder="Search products..." 
-                   value="<%= searchQuery || '' %>">
-            <button type="submit">Search</button>
-        </form>
+              <input type="hidden" name="category" value="<%= selectedCategory %>">
+              <% } %>
+                <% if (selectedSortOrder) { %>
+                  <input type="hidden" name="sortOrder" value="<%= selectedSortOrder %>">
+                  <% } %>
+                    <input type="text" name="search" placeholder="Search products..." value="<%= searchQuery || '' %>">
+                    <button type="submit">Search</button>
+          </form>
+        </div>
       </div>
-    </div>
 
-    <div class="product-list-container">
+      <div class="product-list-container">
         <aside class="sidebar">
-            <!-- Categories Filter -->
-            <div class="filter-section">
-                <div class="filter-title">Categories</div>
-                <div class="category-brand-container">
-                    <ul>
-                        <li class="filter-item">
-                            <a href="/filter" 
-                               class="<%= !selectedCategory ? 'selected' : '' %>">
-                                All Products
-                            </a>
-                        </li>
-                        <% for (let i = 0; i < categories.length; i++) { %>
-                            <li class="filter-item">
-                                <a href="/filter?category=<%= categories[i]._id %><%= selectedSortOrder ? '&sortOrder=' + selectedSortOrder : '' %>"
-                                   class="<%= selectedCategory && selectedCategory.toString() === categories[i]._id.toString() ? 'selected' : '' %>">
-                                    <%= categories[i].name %>
-                                </a>
-                            </li>
-                        <% } %>
-                    </ul>
-                </div>
+          <!-- Categories Filter -->
+          <div class="filter-section">
+            <div class="filter-title">Categories</div>
+            <div class="category-brand-container">
+              <ul>
+                <li class="filter-item">
+                  <a href="/filter" class="<%= !selectedCategory ? 'selected' : '' %>">
+                    All Products
+                  </a>
+                </li>
+                <% for (let i=0; i < categories.length; i++) { %>
+                  <li class="filter-item">
+                    <a href="/filter?category=<%= categories[i]._id %><%= selectedSortOrder ? '&sortOrder=' + selectedSortOrder : '' %>"
+                      class="<%= selectedCategory && selectedCategory.toString() === categories[i]._id.toString() ? 'selected' : '' %>">
+                      <%= categories[i].name %>
+                    </a>
+                  </li>
+                  <% } %>
+              </ul>
             </div>
-    
-            <!-- Sort Form -->
-            <form method="GET" action="/filter">
-                <!-- Maintain category selection in hidden input if category is selected -->
-                <% if (selectedCategory) { %>
-                    <input type="hidden" name="category" value="<%= selectedCategory %>">
-                <% } %>
-    
+          </div>
+
+          <!-- Sort Form -->
+          <form method="GET" action="/filter">
+            <!-- Maintain category selection in hidden input if category is selected -->
+            <% if (selectedCategory) { %>
+              <input type="hidden" name="category" value="<%= selectedCategory %>">
+              <% } %>
+
                 <h4>Sort by:</h4>
                 <br>
                 <select name="sortOrder" onchange="this.form.submit()">
-                    <option value="">Choose sorting method</option>
-                    <option value="productName_asc" <%= selectedSortOrder === 'productName_asc' ? 'selected' : '' %>>A-Z</option>
-                    <option value="productName_desc" <%= selectedSortOrder === 'productName_desc' ? 'selected' : '' %>>Z-A</option>
-                    <option value="price_asc" <%= selectedSortOrder === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
-                    <option value="price_desc" <%= selectedSortOrder === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
-                    <option value="sales_asc" <%= selectedSortOrder === 'sales_asc' ? 'selected' : '' %>>Popularity: Low to High</option>
-                    <option value="sales_desc" <%= selectedSortOrder === 'sales_desc' ? 'selected' : '' %>>Popularity: High to Low</option>
-                    <option value="newArrivals" <%= selectedSortOrder === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
-                    <option value="featured" <%= selectedSortOrder === 'featured' ? 'selected' : '' %>>Featured</option>
-                    <option value="rating_asc" <%= selectedSortOrder === 'rating_asc' ? 'selected' : '' %>>Rating: Low to High</option>
-                    <option value="rating_desc" <%= selectedSortOrder === 'rating_desc' ? 'selected' : '' %>>Rating: High to Low</option>
+                  <option value="">Choose sorting method</option>
+                  <option value="productName_asc" <%=selectedSortOrder==='productName_asc' ? 'selected' : '' %>>A-Z
+                  </option>
+                  <option value="productName_desc" <%=selectedSortOrder==='productName_desc' ? 'selected' : '' %>>Z-A
+                  </option>
+                  <option value="price_asc" <%=selectedSortOrder==='price_asc' ? 'selected' : '' %>>Price: Low to High
+                  </option>
+                  <option value="price_desc" <%=selectedSortOrder==='price_desc' ? 'selected' : '' %>>Price: High to Low
+                  </option>
+                  <option value="sales_asc" <%=selectedSortOrder==='sales_asc' ? 'selected' : '' %>>Popularity: Low to
+                    High</option>
+                  <option value="sales_desc" <%=selectedSortOrder==='sales_desc' ? 'selected' : '' %>>Popularity: High
+                    to Low</option>
+                  <option value="newArrivals" <%=selectedSortOrder==='newArrivals' ? 'selected' : '' %>>New Arrivals
+                  </option>
+                  <option value="featured" <%=selectedSortOrder==='featured' ? 'selected' : '' %>>Featured</option>
+                  <option value="rating_asc" <%=selectedSortOrder==='rating_asc' ? 'selected' : '' %>>Rating: Low to
+                    High</option>
+                  <option value="rating_desc" <%=selectedSortOrder==='rating_desc' ? 'selected' : '' %>>Rating: High to
+                    Low</option>
                 </select>
-            </form>
+          </form>
         </aside>
 
 
 
 
-      <!-- Product List -->
-      <main class="product-grid">
-        <% if (products.length === 0) { %>
-          <div class="no-products-message" style="text-align: center; font-size: 18px; color: #555;">
+        <!-- Product List -->
+        <main class="product-grid">
+          <% if (products.length===0) { %>
+            <div class="no-products-message" style="text-align: center; font-size: 18px; color: #555;">
               No products found matching your search.
-          </div>
-      <% } else { %>
-        <% for (let i = 0; i < products.length; i++) { %>
-          <div class="product-card">
-            <!-- <span class="wishlist-btn" onclick="addToWishlist('<%=products[i]._id%>')">❤️</span> -->
-            <span class="wishlist-btn" id="wishlist-btn-<%= products[i].id %>" onclick="addToWishlist('<%= products[i].id %>')">
-                <%= userWishlist.includes(products[i].id) ? '❤️' : '🤍' %>
-            </span>
-            <a href="/product/<%= products[i].id %>">
-              <img src="/uploads/product-images/<%= products[i].productImg[0] %>" alt="<%= products[i].productName %>" />
-              <h4><%= products[i].productName %></h4>
-             <strong>Stocks Left:<p><%= products[i].quantity %></p></strong>
-              <p>Price: ₹<%= products[i].salePrice.toLocaleString('en-IN') %> <span class="text-muted"><strike>₹<%= products[i].regularPrice.toLocaleString('en-IN') %></strike></span></p>
-              <strong>Category:<p><%= products[i].category.name%></p></strong>
-            </a>
-            <% if (products[i].quantity === 0) { %>
-              <div class="out-of-stock-message" style="color: red;">Out of Stock</div>
+            </div>
             <% } else { %>
-              <!-- Display Add to Cart button if product is in stock -->
-              <form action="/mycart/<%= products[i]._id %>" method="POST">
-                <input type="hidden" name="productId" value="<%= products[i]._id %>">
-                <!-- You can add a quantity input here if needed -->
-                <button type="submit" class="add-to-cart-btn">Add to Cart</button>
-              </form>
-            <% } %>
-          </div>
-        <% } %>
-        <% } %>
+              <% for (let i=0; i < products.length; i++) { %>
+                <% if (products[i].category.isListed) { %>
+                  <div class="product-card">
+                    <!-- <span class="wishlist-btn" onclick="addToWishlist('<%=products[i]._id%>')">❤️</span> -->
+                    <span class="wishlist-btn" id="wishlist-btn-<%= products[i].id %>"
+                      onclick="addToWishlist('<%= products[i].id %>')">
+                      <%= userWishlist.includes(products[i].id) ? '❤️' : '🤍' %>
+                    </span>
+                    <a href="/product/<%= products[i].id %>">
+                      <img src="/uploads/product-images/<%= products[i].productImg[0] %>"
+                        alt="<%= products[i].productName %>" />
+                      <h4>
+                        <%= products[i].productName %>
+                      </h4>
+                      <strong>Stocks Left:<p>
+                          <%= products[i].quantity %>
+                        </p></strong>
+                      <p>Price: ₹<%= products[i].salePrice.toLocaleString('en-IN') %> <span class="text-muted"><strike>₹
+                              <%= products[i].regularPrice.toLocaleString('en-IN') %></strike></span></p>
+                      <strong>Category:<p>
+                          <%= products[i].category.name%>
+                        </p></strong>
+                    </a>
+                    <% if (products[i].quantity===0) { %>
+                      <div class="out-of-stock-message" style="color: red;">Out of Stock</div>
+                      <% } else { %>
+                        <!-- Display Add to Cart button if product is in stock -->
+                        <form action="/mycart/<%= products[i]._id %>" method="POST">
+                          <input type="hidden" name="productId" value="<%= products[i]._id %>">
+                          <!-- You can add a quantity input here if needed -->
+                          <button type="button" class="add-to-cart-btn" onclick="return addToCart('<%= products[i]._id %>')">Add to
+                            Cart</button>
+                        </form>
+                        <% } %>
+                  </div>
+                  <% } %>
+                    <% } %>
+                      <% } %>
 
-      </main>
-    </div>
+        </main>
+      </div>
 
-   
-  <!-- Pagination -->
-  <div class="pagination">
-    <% if (currentPage > 1) { %>
-      <a href="/products?page=<%= currentPage - 1 %>&sortOrder=<%= selectedSortOrder %>">Prev</a>
-    <% } %>
-  
-    <% for (let i = 1; i <= totalPages; i++) { %>
-      <a class="<%= currentPage === i ? 'active' : '' %>" href="/products?page=<%= i %>&sortOrder=<%= selectedSortOrder %>"><%= i %></a>
-    <% } %>
-  
-    <% if (currentPage < totalPages) { %>
-      <a href="/products?page=<%= currentPage + 1 %>&sortOrder=<%= selectedSortOrder %>">Next</a>
-    <% } %>
+
+      <!-- Pagination -->
+      <div class="pagination">
+        <% if (currentPage> 1) { %>
+          <a href="/products?page=<%= currentPage - 1 %>&sortOrder=<%= selectedSortOrder %>">Prev</a>
+          <% } %>
+
+            <% for (let i=1; i <=totalPages; i++) { %>
+              <a class="<%= currentPage === i ? 'active' : '' %>"
+                href="/products?page=<%= i %>&sortOrder=<%= selectedSortOrder %>">
+                <%= i %>
+              </a>
+              <% } %>
+
+                <% if (currentPage < totalPages) { %>
+                  <a href="/products?page=<%= currentPage + 1 %>&sortOrder=<%= selectedSortOrder %>">Next</a>
+                  <% } %>
+      </div>
+    </section>
   </div>
-  </section>
-</div>
 
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script> -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script> -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-  function addToCart() {
+  <script>
+    function addToCart(productId) {
+      console.log("from addtocart",productId)
+     fetch(`/myCart/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // credentials: 'same-origin'
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Item Added to Cart',
+              text:  data.message,
+              showConfirmButton: false,
+              timer: 1500
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: data.message || 'Failed to add product to cart'
+            });
+          }
 
-Swal.fire({
-  icon: 'success',
-  title: 'Item Added to Cart',
-  showConfirmButton: false,
-  timer: 1500
-});
-}
-</script>
 
-<script>
+        })
+    }
+  </script>
+
+  <script>
     // Function to handle sort selection
-    document.querySelector('select[name="sortOrder"]').addEventListener('change', function() {
-        const selectedSort = this.value;
-        const currentUrl = new URL(window.location.href);
-        const params = new URLSearchParams(currentUrl.search);
-        
-        // Maintain the category parameter if it exists
-        const category = params.get('category');
-        
-        // Create new URL with parameters
-        let newUrl = '/filter?';
-        if (category) {
-            newUrl += `category=${category}&`;
-        }
-        if (selectedSort) {
-            newUrl += `sortOrder=${selectedSort}`;
-        }
-        
-        window.location.href = newUrl;
+    document.querySelector('select[name="sortOrder"]').addEventListener('change', function () {
+      const selectedSort = this.value;
+      const currentUrl = new URL(window.location.href);
+      const params = new URLSearchParams(currentUrl.search);
+
+      // Maintain the category parameter if it exists
+      const category = params.get('category');
+
+      // Create new URL with parameters
+      let newUrl = '/filter?';
+      if (category) {
+        newUrl += `category=${category}&`;
+      }
+      if (selectedSort) {
+        newUrl += `sortOrder=${selectedSort}`;
+      }
+
+      window.location.href = newUrl;
     });
 
     // Function to handle category selection
     document.querySelectorAll('.filter-item a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const categoryId = this.href.split('category=')[1]?.split('&')[0];
-            const currentUrl = new URL(window.location.href);
-            const params = new URLSearchParams(currentUrl.search);
-            
-            // Maintain the sort parameter if it exists
-            const sortOrder = params.get('sortOrder');
-            
-            // Create new URL with parameters
-            let newUrl = `/filter?category=${categoryId}`;
-            if (sortOrder) {
-                newUrl += `&sortOrder=${sortOrder}`;
-            }
-            
-            window.location.href = newUrl;
-        });
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        const categoryId = this.href.split('category=')[1]?.split('&')[0];
+        const currentUrl = new URL(window.location.href);
+        const params = new URLSearchParams(currentUrl.search);
+
+        // Maintain the sort parameter if it exists
+        const sortOrder = params.get('sortOrder');
+
+        // Create new URL with parameters
+        let newUrl = `/filter?category=${categoryId}`;
+        if (sortOrder) {
+          newUrl += `&sortOrder=${sortOrder}`;
+        }
+
+        window.location.href = newUrl;
+      });
     });
 
     // Function to update URL when using pagination
     function goToPage(page) {
-        const currentUrl = new URL(window.location.href);
-        const params = new URLSearchParams(currentUrl.search);
-        
-        // Maintain existing parameters
-        const category = params.get('category');
-        const sortOrder = params.get('sortOrder');
-        
-        // Create new URL with parameters
-        let newUrl = '/filter?page=' + page;
-        if (category) {
-            newUrl += `&category=${category}`;
-        }
-        if (sortOrder) {
-            newUrl += `&sortOrder=${sortOrder}`;
-        }
-        
-        window.location.href = newUrl;
+      const currentUrl = new URL(window.location.href);
+      const params = new URLSearchParams(currentUrl.search);
+
+      // Maintain existing parameters
+      const category = params.get('category');
+      const sortOrder = params.get('sortOrder');
+
+      // Create new URL with parameters
+      let newUrl = '/filter?page=' + page;
+      if (category) {
+        newUrl += `&category=${category}`;
+      }
+      if (sortOrder) {
+        newUrl += `&sortOrder=${sortOrder}`;
+      }
+
+      window.location.href = newUrl;
     }
 
 
 
-    document.querySelector('.search-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const searchQuery = this.querySelector('input[name="search"]').value;
-        const currentUrl = new URL(window.location.href);
-        const params = new URLSearchParams(currentUrl.search);
-        
-        // Maintain existing parameters
-        const category = params.get('category');
-        const sortOrder = params.get('sortOrder');
-        
-        // Build new URL
-        let newUrl = '/filter?';
-        if (searchQuery) {
-            newUrl += `search=${encodeURIComponent(searchQuery)}`;
-        }
-        if (category) {
-            newUrl += `${newUrl.includes('?') ? '&' : '?'}category=${category}`;
-        }
-        if (sortOrder) {
-            newUrl += `${newUrl.includes('?') ? '&' : '?'}sortOrder=${sortOrder}`;
-        }
-        
-        window.location.href = newUrl;
+    document.querySelector('.search-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const searchQuery = this.querySelector('input[name="search"]').value;
+      const currentUrl = new URL(window.location.href);
+      const params = new URLSearchParams(currentUrl.search);
+
+      // Maintain existing parameters
+      const category = params.get('category');
+      const sortOrder = params.get('sortOrder');
+
+      // Build new URL
+      let newUrl = '/filter?';
+      if (searchQuery) {
+        newUrl += `search=${encodeURIComponent(searchQuery)}`;
+      }
+      if (category) {
+        newUrl += `${newUrl.includes('?') ? '&' : '?'}category=${category}`;
+      }
+      if (sortOrder) {
+        newUrl += `${newUrl.includes('?') ? '&' : '?'}sortOrder=${sortOrder}`;
+      }
+
+      window.location.href = newUrl;
     });
 
 
 
 
     function clearSearch() {
-        const currentUrl = new URL(window.location.href);
-        const params = new URLSearchParams(currentUrl.search);
-        
-        params.delete('search');
-        
-        window.location.href = `/filter?${params.toString()}`;
+      const currentUrl = new URL(window.location.href);
+      const params = new URLSearchParams(currentUrl.search);
+
+      params.delete('search');
+
+      window.location.href = `/filter?${params.toString()}`;
     }
 
 
@@ -494,42 +542,42 @@ Swal.fire({
 
 
     function addToWishlist(productId) {
-    $.ajax({
+      $.ajax({
         url: '/toggleWishlist',  // Updated to use the toggleWishlist route
         method: 'POST',
         data: { productId: productId },
         success: function (response) {
-            if (response.status) {
-                // Update the heart icon based on whether it was added or removed
-                const newIcon = response.added ? '❤️' : '🤍';
-                $('#wishlist-btn-' + productId).html(newIcon);
+          if (response.status) {
+            // Update the heart icon based on whether it was added or removed
+            const newIcon = response.added ? '❤️' : '🤍';
+            $('#wishlist-btn-' + productId).html(newIcon);
 
-                // Optionally show a success message
-                Swal.fire({
-                    title: response.added ? 'Added to Wishlist' : 'Removed from Wishlist',
-                    text: response.message,
-                    icon: 'success',
-                    timer: 2000
-                });
-            } else {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'There was an error processing your request',
-                    icon: 'error',
-                    timer: 2000
-                });
-            }
+            // Optionally show a success message
+            Swal.fire({
+              title: response.added ? 'Added to Wishlist' : 'Removed from Wishlist',
+              text: response.message,
+              icon: 'success',
+              timer: 2000
+            });
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: 'There was an error processing your request',
+              icon: 'error',
+              timer: 2000
+            });
+          }
         },
         error: function (error) {
-            Swal.fire({
-                title: 'Error',
-                text: 'There was an error processing your request',
-                icon: 'error',
-                timer: 2000
-            });
+          Swal.fire({
+            title: 'Error',
+            text: 'There was an error processing your request',
+            icon: 'error',
+            timer: 2000
+          });
         }
-    });
-}
+      });
+    }
 
-</script>
-<%- include("../../views/partials/user/footer") %>
+  </script>
+  <%- include("../../views/partials/user/footer") %>

@@ -34,12 +34,11 @@ res.render("category",{
 
 const addCategory = async(req,res)=>{
     const {name,description} = req.body;
-    // Basic validation
     if (!name || !description) {
         return res.status(400).json({ error: "Name and description are required" });
     }
     try{
-         const existingCategory = await Category.findOne({name});
+         const existingCategory = await Category.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
          if(existingCategory){
             return res.status(400).json({error:"Category already exists"})
          }
@@ -71,8 +70,8 @@ const addCategoryOffer = async (req,res)=>{
       await Category.updateOne({_id:categoryId},{$set:{categoryOffer:percentage}});
 
       for(const product of products){
-        product.productOffer =0;
-        product.salePrice = product.regularPrice;
+        // product.productOffer = percentage;
+        product.salePrice = product.regularPrice-Math.floor(product.regularPrice*(percentage/100));
         await product.save();
       }
       res.json({status:true});
@@ -147,19 +146,15 @@ const editCategory= async(req,res)=>{
         const id = req.params.id;
         const { categoryName, description } = req.body;
 
-        // Find the category being edited
         const existingCategory = await Category.findOne({ name: categoryName });
 
-        // Check if the category exists but is not the current category
         if (existingCategory && existingCategory._id.toString() !== id) {
-            // return res.status(400).json({ error: "Category name already exists" });
             return res.render('edit-category',{
                 category: { _id: id, name: categoryName, description },
                 errorCategoryName:"Category name already exists"
             })
         }
 
-        // Update the category if validation passes
         const updateCategory = await Category.findByIdAndUpdate(
             id,
             {
@@ -183,10 +178,8 @@ const checkCategoryName = async (req, res) => {
     try {
         const { categoryName, categoryId } = req.body;
 
-        // Check if the category name already exists
         const existingCategory = await Category.findOne({ name: categoryName });
 
-        // If a category exists and it's not the current category being edited, return error
         if (existingCategory && existingCategory._id.toString() !== categoryId) {
             return res.json({ exists: true });
         }

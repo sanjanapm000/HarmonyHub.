@@ -31,10 +31,19 @@ const couponSchema = new mongoose.Schema({
         type:Boolean,
         default:true
     },
-    userId:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User'
-    }]
+    // userId:[{
+    //     type:mongoose.Schema.Types.ObjectId,
+    //     ref:'User'
+    // }],
+    usageLimitPerCustomer: {  
+        type: Number,
+        required: true,
+        default: 1,  
+    },
+    usageCountByUser: {  
+        type: Object,  // Change this to Object
+        default: {}
+    },
 })
 
 const Coupon = mongoose.model('Coupon', couponSchema)

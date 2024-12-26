@@ -48,7 +48,6 @@ const logout = async(req,res)=>{
                 console.log("Error destroying session",err);
                 return res.redirect("/pageerror")
             }
-            // res.clearCookie('connect.sid');
             res.redirect("/admin/login")
         })
     } catch (error) {
@@ -59,17 +58,87 @@ const logout = async(req,res)=>{
 
 
 
-const getDashboard = async (req,res)=>{
-    try {
-        const { filter } = req.query; // Get the filter (daily or monthly) from the query
-        console.log("req.query",req.query);
+// const getDashboard = async (req,res)=>{
+//     try {
+//         const { filter, startDate, endDate } = req.query; 
+//         console.log("req.query",req.query);
         
-        let aggregationPipeline;
+//         let aggregationPipeline ;
 
-        if (filter === 'daily') {
-            // Daily aggregation
+//         if (filter === 'daily') {
+//             aggregationPipeline = [
+
+//                 {
+//                     $group: {
+//                         _id: {
+//                             day: { $dayOfMonth: "$orderDate" },
+//                             month: { $month: "$orderDate" },
+//                             year: { $year: "$orderDate" }
+//                         },
+//                         totalSales: {
+//                             $sum: "$grandTotalAfterDiscount" 
+//                         }
+//                     }
+//                 },
+//                 { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } } 
+//             ];
+//         } else if (filter === 'monthly') {
+//             aggregationPipeline = [
+                
+//                 {
+//                     $group: {
+//                         _id: {
+//                             month: { $month: "$orderDate" },
+//                             year: { $year: "$orderDate" }
+//                         },
+//                         totalSales: {
+//                             $sum: "$grandTotalAfterDiscount" 
+//                         }
+//                     }
+//                 },
+//                 { $sort: { "_id.year": 1, "_id.month": 1 } } 
+//             ];
+//         } else if(startDate && endDate) {
+//             aggregationPipeline = {
+//                 $match: {
+//                     orderDate: {
+//                         $gte: new Date(startDate),
+//                         $lt: new Date(new Date(endDate).setHours(23, 59, 59, 999)) // End of the selected date
+//                     }
+//                 }
+//             };
+//         }else {
+
+//             return res.status(400).json({ success: false, message: "Invalid filter provided" });
+//         }
+
+//         const salesData = await Order.aggregate(aggregationPipeline);
+
+//         res.status(200).json({ success: true, data: salesData });
+//     } catch (error) {
+//         console.error("Error fetching sales data:", error);
+//         res.status(500).json({ success: false, message: "Internal server error" });
+//     }
+// }
+
+const getDashboard = async (req, res) => {
+    try {
+        const { filter, startDate, endDate } = req.query;
+        console.log("req.query", req.query);
+
+        let aggregationPipeline = [];
+
+        if (startDate && endDate) {
+            // Custom date range
             aggregationPipeline = [
-
+                {
+                    $match: {
+                        orderDate: {
+                            $gte: new Date(startDate),
+                            $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+                        }
+                    }
+                },
                 {
                     $group: {
                         _id: {
@@ -78,16 +147,42 @@ const getDashboard = async (req,res)=>{
                             year: { $year: "$orderDate" }
                         },
                         totalSales: {
-                            $sum: "$grandTotalAfterDiscount" // Sum of finalAmount (after discount)
+                            $sum: "$grandTotalAfterDiscount"
                         }
                     }
                 },
-                { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } } // Sort by date
+                { 
+                    $sort: { 
+                        "_id.year": 1, 
+                        "_id.month": 1, 
+                        "_id.day": 1 
+                    } 
+                }
+            ];
+        } else if (filter === 'daily') {
+            aggregationPipeline = [
+                {
+                    $group: {
+                        _id: {
+                            day: { $dayOfMonth: "$orderDate" },
+                            month: { $month: "$orderDate" },
+                            year: { $year: "$orderDate" }
+                        },
+                        totalSales: {
+                            $sum: "$grandTotalAfterDiscount"
+                        }
+                    }
+                },
+                { 
+                    $sort: { 
+                        "_id.year": 1, 
+                        "_id.month": 1, 
+                        "_id.day": 1 
+                    } 
+                }
             ];
         } else if (filter === 'monthly') {
-            // Monthly aggregation
             aggregationPipeline = [
-                
                 {
                     $group: {
                         _id: {
@@ -95,34 +190,41 @@ const getDashboard = async (req,res)=>{
                             year: { $year: "$orderDate" }
                         },
                         totalSales: {
-                            $sum: "$grandTotalAfterDiscount" // Sum of finalAmount (after discount)
+                            $sum: "$grandTotalAfterDiscount"
                         }
                     }
                 },
-                { $sort: { "_id.year": 1, "_id.month": 1 } } // Sort by year and month
+                { 
+                    $sort: { 
+                        "_id.year": 1, 
+                        "_id.month": 1 
+                    } 
+                }
             ];
         } else {
-
-            return res.status(400).json({ success: false, message: "Invalid filter provided" });
+            return res.status(400).json({ 
+                success: false, 
+                message: "Invalid filter provided" 
+            });
         }
 
-        // Execute the aggregation
         const salesData = await Order.aggregate(aggregationPipeline);
-
         res.status(200).json({ success: true, data: salesData });
+
     } catch (error) {
         console.error("Error fetching sales data:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal server error" 
+        });
     }
-}
+};
 
 const loadDashboard = async (req,res)=>{
 try {
-    // Fetch the top selling products, categories, and brands
     const topSellingProducts = await salesService.getTopSellingProducts();
     const topSellingCategories = await salesService.getTopSellingCategories();
 
-    // Render the dashboard with the fetched data
     res.render('dashboard', {
         topSellingProducts,
         topSellingCategories,

@@ -61,6 +61,7 @@ const getMyCart = async (req, res) => {
             const grandTotal = updatedCartData.reduce((total, item) => total + item.itemTotal, 0);
 
             req.session.grandTotal = grandTotal;
+            
 
             res.render('myCart', {
                 userCartData: updatedCartData,
@@ -85,6 +86,8 @@ const addToCart = async (req, res) => {
         if (!userId) {
             return res.status(400).send('User is not authenticated');
         }
+        const userCartData = await Cart.find({ userId: req.session.user._id || req.session.user }).populate('productId');
+        console.log("userCartData",userCartData);
         if (!mongoose.Types.ObjectId.isValid(productId)) {
             return res.status(400).send("Invalid product ID format");
         }
@@ -98,13 +101,20 @@ const addToCart = async (req, res) => {
             }
 
             const totalCostPerProduct = productQty * product.salePrice;
-            await Cart.create({
-                userId,
-                productId,
-                productQty,
-                currentUser: req.session.user,
-                totalCostPerProduct,
-            });
+            if(userCartData.length<3){
+                await Cart.create({
+                    userId,
+                    productId,
+                    productQty,
+                    currentUser: req.session.user,
+                    totalCostPerProduct,
+                });
+                return res.json({success:true,message:"Item added to cart"});
+            }else{
+                return res.json({success:false,message:"You have reached the cart limit"});
+
+            }
+            
         } else {
             await Cart.updateOne({ _id: existingProduct._id }, { $inc: { productQty: productQty } });
         }
@@ -187,6 +197,8 @@ const checkoutPage = async (req, res) => {
             return res.redirect("/addAddress");
         }
 
+       
+
         let totalAmount = 0;
         cartData.forEach(item => {
             totalAmount += item.productId.salePrice * item.productQty;
@@ -202,7 +214,25 @@ const checkoutPage = async (req, res) => {
 
         console.log('Total Amount:', totalAmount);
 
-
+        let availableCoupons = await Coupon.find({
+            expireOn: { $gte: new Date() },  // Only valid coupons
+        });
+        
+        // Filter out coupons the user has already used
+        availableCoupons = availableCoupons.filter(coupon => {
+            // Access the usage count for the user in usageCountByUser
+            const userUsageCount = coupon.usageCountByUser[user._id] || 0;  // Default to 0 if user hasn't used the coupon
+            return userUsageCount < coupon.usageLimitPerCustomer; // Only show coupons the user can still use
+        });
+        if (availableCoupons.length === 0) {
+            console.log("No available coupons.");
+            // Optionally, you can add a message to the response to inform the user
+            req.session.noCouponsAvailable = true;
+        } else {
+            req.session.noCouponsAvailable = false;
+        }
+        
+        console.log("Available Coupons: ", availableCoupons);
 
         if (req.body.addressChosen) {
             const order = await Order.create({
@@ -225,6 +255,7 @@ const checkoutPage = async (req, res) => {
                 }
             });
             console.log('Session after creating order:', req.session);
+            
             res.render("checkout", {
                 user: req.session.user,
                 grandTotal: req.session.grandTotal,
@@ -238,6 +269,9 @@ const checkoutPage = async (req, res) => {
                 discountAmount: req.session.discountAmount,
                 walletBalance: user.wallet,
                 currentOrderId: orderId,
+                availableCoupons,
+                noCouponsAvailable: req.session.noCouponsAvailable
+
             });
             console.log("CARTDATA NEW ",cartData);
             
@@ -258,8 +292,9 @@ const checkoutPage = async (req, res) => {
                 couponName: req.session.couponName,
                 discountAmount: req.session.discountAmount,
                 walletBalance: user.wallet,
-
                 currentOrderId: orderId || null,
+                availableCoupons,
+                noCouponsAvailable: req.session.noCouponsAvailable
 
             });
         }
@@ -271,230 +306,104 @@ const checkoutPage = async (req, res) => {
         res.redirect("/addAddress");
     }
 };
-
-
-// const processOrder = async (req, res) => {
+// const checkoutPage = async (req, res) => {
 //     try {
+//         console.log('Selected address:', req.body.addressChosen);
+//         const user = await User.findById(req.session.user._id || req.session.user);
+//         const orderId = req.body.orderId;
 
-//         const user = await User.findById(req.session.user._id);
-//         const selectedAddressId = req.body.addressChosen; 
-//         console.log("Selected address ID:", selectedAddressId);
-//         const {paymentMethod,orderId} = req.body;
-//         const orderTotal = req.session.grandTotal;
+//         if (!req.session.user || !req.session.user._id) {
+//             return res.redirect('/login');
+//         }
 
-//         const selectedAddressDoc = await Address.findOne({
-//             userId: req.session.user._id,
-//             "address._id": selectedAddressId, 
+//         const cartData = await Cart.find({ userId: req.session.user._id || req.session.user}).populate('productId');
+//         let addressData = await Address.find({ userId: req.session.user._id || req.session.user});
+//         const addressId = addressData._id;
+
+//         if (addressData.length === 0) {
+//             return res.redirect("/addAddress");
+//         }
+
+//         let totalAmount = 0;
+//         cartData.forEach(item => {
+//             totalAmount += item.productId.salePrice * item.productQty;
 //         });
 
-//         if (!selectedAddressDoc) {
-//             return res.status(400).send('Invalid address selection.');
+//         if (req.session.couponApplied && req.session.discountAmount) {
+//             totalAmount = totalAmount - req.session.discountAmount;
 //         }
 
-//         const selectedAddress = selectedAddressDoc.address.find(
-//             addr => addr._id.toString() === selectedAddressId
-//         );
+//         req.session.grandTotal = totalAmount;
 
-//         if (!selectedAddress) {
-//             return res.status(400).send('Address not found in the address array.');
-//         }
+//         // Fetch available coupons before if/else block
+//         const availableCoupons = await Coupon.find({
+//             expireOn: { $gt: new Date() },
+//             minimumPrice: { $lte: totalAmount },
+//             isList: true
+//         }).lean();
 
-//         if (paymentMethod === 'wallet') {
-//             if (user.wallet >= orderTotal) {
-//                 // Deduct the order total from the wallet
-//                 user.wallet -= orderTotal;
+//         // Filter coupons based on usage limit
+//         const filteredCoupons = availableCoupons.filter(coupon => {
+//             const userUsageCount = coupon.usageCountByUser[user._id] || 0;
+//             return userUsageCount < coupon.usageLimitPerCustomer;
+//         });
 
-//                 // Save the transaction in wallet history
-//                 const transaction = new Wallet({
-//                     amount: -orderTotal,
-//                     status: 'Payment',
-//                     description: `Payment for order`
-//                 });
+//         if (req.body.addressChosen) {
+//             const order = await Order.create({
+//                 userId: req.session.user._id || req.session.user,
+//                 orderNumber: (await Order.countDocuments()) + 1,
+//                 orderDate: new Date(),
+//                 addressChosen: req.body.addressChosen,
+//                 cartData: await grandTotal(req, res),
+//                 grandTotalCost: req.session.grandTotal,
+//             });
 
-//                 await transaction.save();
-//                 user.walletHistory.push(transaction._id);
-//                 await user.save();
-
-//                 const updatedOrder = await Order.findByIdAndUpdate(
-//                     orderId,
-//                     {
-//                         paymentType: 'Wallet', // Set payment type to wallet
-//                         orderStatus: 'Paid', // Update order status to Paid
-//                         grandTotalCost: orderTotal // Update the grand total cost if necessary
-//                     },
-//                     { new: true } // Return the updated document
-//                 );
-
-//                 if (!updatedOrder) {
-//                     return res.status(404).send('Order not found');
+//             req.session.currentOrder = req.session.order;
+//             req.session.currentorderId = req.session.order._id;
+//             req.session.save((err) => {
+//                 if (err) {
+//                     console.error('Error saving session:', err);
 //                 }
-
-
-
-
-
-
-//                 console.log('Payment successful using wallet');
-//                 return res.json({ success: true });
-//             } else {
-//                 return res.status(400).send('Insufficient wallet balance');
-//             }
-//         }
-
-//         if (!req.session.currentOrder) {
-//             console.log('Creating a new order in session...');
-
-//             const newOrder = await Order.create({
-//                 userId: req.session.user._id,
-//                 orderNumber: (await Order.countDocuments()) + 1, 
-//                 orderDate: new Date(),
-//                 paymentType: "Pending",
-//                 orderStatus: "Pending",
-//                 cartData: await grandTotal(req, res),
-//                 grandTotalCost: req.session.grandTotal,
-//                 addressChosen: selectedAddress, 
-//                 couponApplied: req.session.couponApplied || false,
-//                 couponName: req.session.couponName || null,
-//                 discountAmount: req.session.discountAmount || 0,
 //             });
 
-//             req.session.currentOrder = {
-//                 ...newOrder.toObject(),  
-//                 addressChosen: selectedAddress, 
-//             };
-
-//             console.log('New order created:', req.session.currentOrder); 
-//             // res.redirect('/checkout/orderPlacedEnd')
-//         } else {
-//             req.session.currentOrder.addressChosen = selectedAddress;
-//         }
-
-//         req.session.save((err) => {
-//             if (err) {
-//                 console.error('Error saving session:', err);
-//                 return res.status(500).send('Error saving session.');
-//             }
-//             console.log('Session after creating/updating order:', req.session);
-//         });
-
-
-//     } catch (error) {
-//         console.error("Error processing order:", error);
-//         res.status(500).send('Error processing your order.');
-//     }
-// };
-
-
-
-
-
-
-
-// const orderPlaced = async (req, res) => {
-//     try {
-//         if (!req.session.currentOrder || !req.session.currentOrder._id) {
-//             return res.status(400).json({ success: false, message: "No order found in session" });
-//         }
-
-//         console.log("Updating order with ID:", req.session.currentOrder._id);
-
-//         const result = await Order.updateOne(
-//             { _id: req.session.currentOrder._id },
-//             { $set: { paymentId: "generatedAtDelivery", paymentType: "COD" } }
-//         );
-
-
-//       console.log("ed");
-//       res.json({ success: true });
-//         if (result.nModified === 0) {
-//             return res.status(404).json({ success: false, message: "Order not found or already updated" });
-//         }
-
-//         res.json({ success: true, message: "Order updated successfully" });
-//     } catch (error) {
-//         console.error("Error while updating order:", error);
-//         res.status(500).json({ success: false, message: "Internal server error" });
-//     }
-// };
-
-
-// const processOrder = async (req, res) => {
-//     try {
-//         const userId=req.session.user._id;
-//         const selectedAddressId = req.body.addressChosen; 
-//         console.log("Selected address ID:", selectedAddressId);
-//         console.log("REQUEST BODY:",req.body);
-
-//         const { paymentMethod, addressChosen, orderId } = req.body; // Get payment method, address, and order ID from the request
-//         const totalAmount = req.session.grandTotal; // Assuming grandTotal is stored in session
-
-//         if (paymentMethod === 'wallet') {
-//             const walletResult = await processWalletPayment(userId, totalAmount, orderId);
-//             if (!walletResult.success) {
-//                 return res.json({ success: false, message: walletResult.message });
-//             }
-//             return res.json({ success: true });
-//         }
-
-//         const selectedAddressDoc = await Address.findOne({
-//             userId: req.session.user._id,
-//             "address._id": selectedAddressId, 
-//         });
-
-//         if (!selectedAddressDoc) {
-//             return res.status(400).send('Invalid address selection.');
-//         }
-
-//         const selectedAddress = selectedAddressDoc.address.find(
-//             addr => addr._id.toString() === selectedAddressId
-//         );
-
-//         if (!selectedAddress) {
-//             return res.status(400).send('Address not found in the address array.');
-//         }
-
-//         if (!req.session.currentOrder) {
-//             console.log('Creating a new order in session...');
-
-//             const newOrder = await Order.create({
-//                 userId: req.session.user._id,
-//                 orderNumber: (await Order.countDocuments()) + 1, 
-//                 orderDate: new Date(),
-//                 paymentType: "Pending",
-//                 orderStatus: "Pending",
-//                 cartData: await grandTotal(req, res),
-//                 grandTotalCost: req.session.grandTotal,
-//                 addressChosen: selectedAddress, 
-//                 couponApplied: req.session.couponApplied || false,
-//                 couponName: req.session.couponName || null,
-//                 discountAmount: req.session.discountAmount || 0,
+//             return res.render("checkout", {
+//                 user: req.session.user,
+//                 grandTotal: req.session.grandTotal,
+//                 userCartData: await grandTotal(req, res),
+//                 cartData,
+//                 addressData,
+//                 addressId,
+//                 totalAmount,
+//                 couponApplied: req.session.couponApplied,
+//                 couponName: req.session.couponName,
+//                 discountAmount: req.session.discountAmount,
+//                 walletBalance: user.wallet,
+//                 currentOrderId: orderId,
+//                 availableCoupons: filteredCoupons
 //             });
-
-//             req.session.currentOrder = {
-//                 ...newOrder.toObject(),  
-//                 addressChosen: selectedAddress, 
-//             };
-
-//             console.log('New order created:', req.session.currentOrder); 
 //         } else {
-//             req.session.currentOrder.addressChosen = selectedAddress;
+//             return res.render("checkout", {
+//                 user: req.session.user,
+//                 grandTotal: req.session.grandTotal,
+//                 userCartData: await grandTotal(req, res),
+//                 cartData,
+//                 addressData,
+//                 addressId,
+//                 totalAmount,
+//                 couponApplied: req.session.couponApplied,
+//                 couponName: req.session.couponName,
+//                 discountAmount: req.session.discountAmount,
+//                 walletBalance: user.wallet,
+//                 availableCoupons: filteredCoupons,
+//                 currentOrderId: orderId || null
+//             });
 //         }
 
-//         req.session.save((err) => {
-//             if (err) {
-//                 console.error('Error saving session:', err);
-//                 return res.status(500).send('Error saving session.');
-//             }
-//             console.log('Session after creating/updating order:', req.session);
-//         });
-
-
 //     } catch (error) {
-//         console.error("Error processing order:", error);
-//         res.status(500).send('Error processing your order.');
+//         console.error("Checkout error:", error);
+//         res.redirect("/addAddress");
 //     }
 // };
-
 
 const processOrder = async (req, res) => {
     try {
@@ -716,198 +625,29 @@ const processOrder = async (req, res) => {
     };
 
 
-    // const applyCoupon = async (req, res) => {
-    //     try {
-    //         const { name } = req.body;
-
-    //         let couponData = await Coupon.findOne({ name });
-
-    //         if (couponData) {
-    //             let { grandTotal } = req.session;
-    //             let { minimumPrice, expireOn , offerPrice} = couponData;
-
-    //             const minimumPurchaseCheck = minimumPrice <= grandTotal;
-    //             const expiryDateCheck = new Date() < new Date(expireOn);
-
-    //             if (minimumPurchaseCheck && expiryDateCheck) {
-
-
-    //                 const discountAmount = offerPrice;
-
-    //         let { currentOrder } = req.session;
-
-    //         if (currentOrder && currentOrder._id) {
-    //             await Order.findByIdAndUpdate(currentOrder._id, {
-    //                 $set: {
-    //                     couponApplied: true,
-    //                     couponName: name,  // Store the applied coupon's name
-    //                     discountAmount,
-    //                     grandTotalAfterDiscount,
-    //                 },
-    //             });
-    //         }
-    //         const grandTotalAfterDiscount = grandTotal - discountAmount;
-
-    //         req.session.grandTotal = grandTotalAfterDiscount;
-
-
-    //                 res.json({
-    //                     success: true,
-    //                     name,
-    //                     discountAmount,
-    //                     grandTotalAfterDiscount,
-    //                     grandTotal,
-    //                 });
-    //             } else {
-    //                 res.json({
-    //                     success: false,
-    //                     message: "Make a purchase of at least $" + minimumPrice + " to use this coupon.",
-    //                     minimumPrice,
-    //                 });
-    //             }
-    //         } else {
-    //             res.json({
-    //                 success: false,
-    //                 message: "Coupon does not exist.",
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error(error);
-    //         res.status(500).send("Internal Server Error");
-    //     }
-    // };
-
-
-    // const applyCoupon = async (req, res) => {
-    //     try {
-    //         const { name } = req.body;
-
-    //         // Find the coupon data
-    //         let couponData = await Coupon.findOne({ name });
-
-    //         if (couponData) {
-    //             let { grandTotal } = req.session;
-    //             let { minimumPrice, expireOn, offerPrice } = couponData;
-
-    //             // Check if the minimum purchase condition is met
-    //             const minimumPurchaseCheck = minimumPrice <= grandTotal;
-
-    //             // Check if the coupon has not expired
-    //             const expiryDateCheck = new Date() < new Date(expireOn);
-
-    //             if (minimumPurchaseCheck && expiryDateCheck) {
-    //                 // Calculate the discount amount
-    //                 const discountAmount = offerPrice;
-
-    //                 // Calculate grand total after discount
-    //                 const grandTotalAfterDiscount = grandTotal - discountAmount;
-
-    //                 // Update the session with the new grand total after discount
-    //                 req.session.grandTotal = grandTotalAfterDiscount;
-
-    //                 let { currentOrder } = req.session;
-
-    //                 // Check if there's an active order to update
-    //                 if (currentOrder && currentOrder._id) {
-    //                     // Update the order in the database with coupon details
-    //                     await Order.findByIdAndUpdate(currentOrder._id, {
-    //                         $set: {
-    //                             couponApplied: true,
-    //                             couponName: name,  // Store the applied coupon's name
-    //                             discountAmount,     // Store the discount amount
-    //                             grandTotalCost: grandTotalAfterDiscount, // Updated grand total after discount
-    //                         },
-    //                     });
-    //                 }
-
-    //                 // Return the response with coupon details and the new grand total
-    //                 res.json({
-    //                     success: true,
-    //                     name,
-    //                     discountAmount,
-    //                     grandTotalAfterDiscount,
-    //                     grandTotal,
-    //                 });
-    //             } else {
-    //                 // If the minimum price is not met or coupon is expired
-    //                 res.json({
-    //                     success: false,
-    //                     message: `Make a purchase of at least $${minimumPrice} to use this coupon.`,
-    //                     minimumPrice,
-    //                 });
-    //             }
-    //         } else {
-    //             // Coupon not found
-    //             res.json({
-    //                 success: false,
-    //                 message: "Coupon does not exist.",
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error(error);
-    //         res.status(500).send("Internal Server Error");
-    //     }
-    // };
-
-    // const applyCoupon = async (req, res) => {
-    //     try {
-    //         const { name } = req.body;
-    //         let couponData = await Coupon.findOne({ name });
-
-    //         if (couponData) {
-    //             let { grandTotal } = req.session;
-    //             let { minimumPrice, expireOn, offerPrice } = couponData;
-
-    //             const minimumPurchaseCheck = minimumPrice <= grandTotal;
-    //             const expiryDateCheck = new Date() < new Date(expireOn);
-
-    //             if (minimumPurchaseCheck && expiryDateCheck) {
-    //                 const discountAmount = offerPrice;
-    //                 const grandTotalAfterDiscount = grandTotal - discountAmount;
-
-    //                 req.session.grandTotal = grandTotalAfterDiscount;
-    //                 req.session.couponApplied = true;
-    //                 req.session.couponName = name;
-    //                 req.session.discountAmount = discountAmount;
-
-    //                 console.log('Coupon applied:', {
-    //                     couponName: name,
-    //                     discountAmount,
-    //                     grandTotalAfterDiscount
-    //                 });
-
-    //                 res.json({
-    //                     success: true,
-    //                     name,
-    //                     discountAmount,
-    //                     grandTotalAfterDiscount,
-    //                     grandTotal,
-    //                 });
-    //             } else {
-    //                 res.json({
-    //                     success: false,
-    //                     message: `Make a purchase of at least $${minimumPrice} to use this coupon.`,
-    //                     minimumPrice,
-    //                 });
-    //             }
-    //         } else {
-    //             res.json({
-    //                 success: false,
-    //                 message: "Coupon does not exist.",
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error(error);
-    //         res.status(500).send("Internal Server Error");
-    //     }
-    // };
-
+   
     const applyCoupon = async (req, res) => {
         try {
             const { name } = req.body;
+            const userId = req.session.user._id;
             let couponData = await Coupon.findOne({ name });
-
+            // console.log("req.session",req.session);
+            
+           
             if (couponData) {
+
+
+
+
+                let usageCount = couponData.usageCountByUser[userId] || 0;
+
+            // Check if the user has exceeded the usage limit
+            if (usageCount >= couponData.usageLimitPerCustomer) {
+                return res.json({
+                    success: false,
+                    message: "You have already used this coupon the maximum number of times.",
+                });
+            }
                 // Convert grandTotal and minimumPrice to numbers
                 let grandTotal = parseFloat(req.session.grandTotal);
                 let minimumPrice = parseFloat(couponData.minimumPrice);
@@ -920,6 +660,13 @@ const processOrder = async (req, res) => {
 
                 const minimumPurchaseCheck = grandTotal >= minimumPrice;
                 const expiryDateCheck = new Date() < new Date(couponData.expireOn);
+                if (!expiryDateCheck) {
+                    return res.json({
+                        success: false,
+                        message: "Coupon has expired.",
+                    });
+                }
+                
 
                 if (minimumPurchaseCheck && expiryDateCheck) {
                     const discountAmount = parseFloat(couponData.offerPrice);
@@ -929,6 +676,11 @@ const processOrder = async (req, res) => {
                     req.session.couponApplied = true;
                     req.session.couponName = name;
                     req.session.discountAmount = discountAmount;
+
+                    couponData.usageCountByUser[userId] = usageCount + 1;
+
+                    await couponData.save();
+
 
                     console.log('Coupon applied successfully:', {
                         couponName: name,
@@ -951,12 +703,13 @@ const processOrder = async (req, res) => {
                         grandTotal,
                         minimumPrice
                     });
-
                     res.json({
                         success: false,
                         message: `Make a purchase of at least ₹${minimumPrice} to use this coupon.`,
                         minimumPrice,
                     });
+               
+                   
                 }
             } else {
                 res.json({
@@ -972,9 +725,11 @@ const processOrder = async (req, res) => {
 
 
     const createRazorpayOrder = async (req, res) => {
+        console.log("req.body from razorpay",req.body);
+        
         try {
             const options = {
-                amount: req.body.amount,
+                amount: req.body.amount - ((req.session.discountAmount || 0) * 100),
                 currency: 'INR',
                 receipt: 'order_' + Date.now(),
             };
@@ -1110,6 +865,17 @@ const processOrder = async (req, res) => {
 
 
             user.wallet -= order.grandTotalCost;
+            const transaction = new Wallet({
+                userId: order.userId, 
+                amount: order.grandTotalCost,
+                status: 'Debited',
+                description: `Debited for purchased order #${order.orderNumber}`
+            });
+
+            
+            await transaction.save();
+            user.walletHistory.push(transaction._id);
+
             await user.save();
 
             order.paymentType = "Wallet";

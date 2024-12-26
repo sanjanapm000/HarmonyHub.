@@ -1,0 +1,99 @@
+<%- include("../../views/partials/admin/header") %>
+
+<main class="main">
+    <div class="page-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-9 col-md-9 col-sm-7">
+
+                    <div class="statusContent">
+                        <div class="col-sm-12">
+                            <div class="statusTop">
+                                <p><strong>Status:</strong></p>
+                                <p><%= orderData.orderStatus %></p>
+
+                                <p><strong>Order Date:</strong> <%= orderData.orderDate %></p>
+
+                                <p><strong>Order Number:</strong> #<%= orderData.orderNumber %></p>
+                            </div>
+                        </div>
+
+                        <div class="gap"></div>
+
+                        <div class="col-sm-12 mt-3">
+                            <div class="order-box">
+                                <div class="order-box-header"><strong>Address</strong></div>
+                                <div class="order-box-content">
+                                    <% if (selectedAddress) { %>
+                                        <div class="address">
+                                            <p><strong><%= selectedAddress.addressType %></strong></p>
+                                            <p><strong><%= selectedAddress.name %></strong></p>
+                                            <div class="adr">
+                                                <%= selectedAddress.landMark %>, <%= selectedAddress.city %>, 
+                                                <%= selectedAddress.state %>, <%= selectedAddress.pincode %>
+                                                <br />Phone: <%= selectedAddress.phone %>
+                                            </div>
+                                        </div>
+                                    <% } else { %>
+                                        <p>No address found.</p>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="order-box">
+                                <div class="order-box-header"><strong>Payment Method</strong></div>
+                                <div class="order-box-content">
+                                    <div class="address">
+                                        <p><%= orderData.paymentType %></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <div class="order-box">
+                                <div class="order-box-header text-center" style="font-size: 20px; font-weight: bold;">Order Items</div>
+                                <div class="order-box-content">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered order-details-cart">
+                                            <thead>
+                                                <tr>
+                                                    <th>Product Image</th>
+                                                    <th>Product Name</th>
+                                                    <th>Quantity</th>
+                                                    <th>Total Cost</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if (orderData.cartData && orderData.cartData.length > 0) { %>
+                                                    <% orderData.cartData.forEach(item => { %>
+                                                        <tr>
+                                                            <td><img src="/uploads/product-images/<%= item.productId.productImg[0] %>" style="width: 100px;"></td>
+                                                            <td><%= item.productId.productName %></td>
+                                                            <td><%= item.productQty %></td>
+                                                            <td>₹<%= item.totalCostPerProduct %></td>
+                                                        </tr>
+                                                    <% }); %>
+                                                    <tr>
+                                                        <td colspan="3">Grand Total</td>
+                                                        <td>₹<%= orderData.grandTotalCost %></td>
+                                                    </tr>
+                                                <% } else { %>
+                                                    <tr><td colspan="4">No items in the cart.</td></tr>
+                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<%- include("../../views/partials/admin/footer") %>

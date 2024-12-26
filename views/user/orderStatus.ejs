@@ -34,10 +34,14 @@
                                     <button class="btn btn-danger btn-lg btn-block">This order has been
                                         cancelled</button>
                                 </div>
+                                <% } else if (orderData.orderStatus === 'Return') { %>
+                                    <div class="col-sm-6">
+                                        <button class="btn btn-warning btn-lg btn-block" disabled>This order has been returned</button>
+                                    </div>
                                 <% } else if (isDelivered) { %>
                                     <div class="col-sm-6">
                                         <button id="returnBtn" class="btn btn-primary btn-lg btn-block"
-                                            onclick="cancelOrder('<%= orderData._id %>')">Return this order</button>
+                                            onclick="returnOrder('<%= orderData._id %>')">Return this order</button>
                                     </div>
                                     <% } else { %>
                                         <div class="col-sm-12 mt-3">
@@ -56,7 +60,7 @@
                                             <div class="col-sm-6">
                                                 <% if (orderData.addressChosen && addressData.address && addressData.address.length > 0)  { %>
                                                     <div class="order-box">
-                                                        <div class="order-box-header">Address</div>
+                                                        <div class="order-box-header"><strong>Address</strong></div>
                                                         <div class="order-box-content">
                                                             <% 
                                                                 // Loop through the address array
@@ -78,7 +82,7 @@
                                                 <% } %>
                                                 <div class="col-sm-6">
                                                     <div class="order-box">
-                                                        <div class="order-box-header">Payment Method</div>
+                                                        <div class="order-box-header"><strong>Payment Method</strong></div>
 
                                                         <div class="order-box-content">
                                                             <div class="address">
@@ -115,9 +119,10 @@
                                         <thead>
                                             <tr>
                                                 <th scope="col" style="width: 15%;">Product Image</th>
-                                                <th scope="col" style="width: 35%;">Product Name</th>
+                                                <th scope="col" style="width: 55%;">Product Name</th>
                                                 <th scope="col" style="width: 15%;">Quantity</th>
                                                 <th scope="col" style="width: 20%;">Total Cost</th>
+                                                <th scope="col" style="width: 20%;">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -137,31 +142,44 @@
                                                             <div class="miniCartDescription text-center" style="font-size: 5px;">
                                                                 <h4>
                                                                     <a href="/productDetails/<%= cartItem.productId._id %>">
-                                                                        <%= cartItem.productId.productName.substring(0, 20) %> <!-- Adjust the number of characters -->
+                                                                        <%= cartItem.productId.productName.substring(0, 30) %> <!-- Adjust the number of characters -->
                                                                     </a>
                                                                 </h4>
                                                             </div>
                                                         </td>
                                                         <td><a style="font-size: 14px; text-align: center;">X<%= cartItem.productQty %></a></td>
                                                         <td><span style="font-size: 14px; text-align: center;">₹<%= cartItem.totalCostPerProduct %></span></td>
+                                                        <!-- <td><button class="btn btn-danger" onclick="cancelProduct('<%= cartItem.productId._id %>','<%= orderData._id %>',this)">Cancel</button></td> -->
+                                                        <td>
+                                                            <button id="cancel-button-<%= cartItem.productId._id %>" class="btn btn-danger"
+                                                                    <% if (cartItem.isCancelled) { %> disabled <% } %>
+                                                                    onclick="cancelProduct('<%= cartItem.productId._id %>', '<%= orderData._id %>', this)">
+                                                                <%= cartItem.isCancelled ? "Cancelled" : "Cancel" %>
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                 <% }); %>
                                                 <tr class="cartTotalTr blank">
-                                                    <td colspan="4"></td>
+                                                    <td colspan="5"></td>
                                                 </tr>
                     
                                                 <tr class="cartTotalTr">
                                                     <td colspan="2">Total </td>
-                                                    <td colspan="2"><span>₹<%= orderData.grandTotalCost %></span></td>
+                                                    <td colspan="3"><span id="totalAmount">₹<%= orderData.cartData.reduce((total, item) => {
+                                                        return !item.isCancelled ? total + item.totalCostPerProduct : total;
+                                                    }, 0) %></span></td>
                                                 </tr>
                                                 <tr class="cartTotalTr">
                                                     <td colspan="2">Shipping</td>
-                                                    <td colspan="2"><span>Free</span></td>
+                                                    <td colspan="3"><span>Free</span></td>
                                                 </tr>
                                                 <tr class="cartTotalTr">
                                                     <td colspan="2">GrandTotal</td>
-                                                    <td colspan="2"><span class="price">₹<%= orderData.grandTotalCost %></span></td>
+                                                    <td colspan="3"><span class="price" id="grandTotalAmount">₹<%= orderData.cartData.reduce((total, item) => {
+                                                        return !item.isCancelled ? total + item.totalCostPerProduct : total;
+                                                    }, 0) %></span></td>
                                                 </tr>
+                                                
                                             <% } else { %>
                                                 <tr><td colspan="4">No items in the cart.</td></tr>
                                             <% } %>
@@ -169,8 +187,8 @@
                                     </table>
                     
                                     <div class="col-sm-12">
-                                        <div class="btn btn-info">
-                                            <a href="/profile/downloadInvoice/<%= orderData._id %>">Download Invoice</a>
+                                        <div class="btn btn-success">
+                                            <a href="/profile/downloadInvoice/<%= orderData._id %>" style="color: white;">Download Invoice</a>
                                         </div>
                                     </div>
                                 </div>
@@ -234,6 +252,79 @@
             console.log('Order cancellation cancelled');
         }
     });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function returnOrder(orderId) {
+    // Confirm the action
+    if (confirm("Are you sure you want to return this order?")) {
+        // Make a POST request to return the order
+      await  fetch(`/order/return/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Your order has been returned and refund processed.");
+                location.reload();
+            } else {
+                alert("There was an issue processing your return.");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("There was an error processing your return.");
+        });
+    }
+}
+
+
+
+
+
+async function cancelProduct(productId,orderId,btnElement){
+    console.log("entered into cancel product",productId,orderId)
+    await fetch(`/order/cancelProduct/${productId}/${orderId}`,{
+        method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+
+         
+    })
+    .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('totalAmount').textContent = `₹${data.newTotalAmount}`;
+                document.getElementById('grandTotalAmount').textContent = `₹${data.newGrandTotal}`;
+
+
+                alert("Your product has been cancelled");
+            location.reload();
+           
+            } else {
+                alert("There was an issue cancelling your product");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("There was an error cancelling your product.");
+        });
 }
 
     </script>

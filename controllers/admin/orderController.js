@@ -1,6 +1,62 @@
 const Order = require("../../models/orderSchema.js");
 const User = require("../../models/userSchema.js");
-const Wallet = require("../../models/walletSchema.js")
+const Wallet = require("../../models/walletSchema.js");
+const Address = require('../../models/addressSchema.js');
+const Product = require("../../models/productSchema.js")
+
+
+
+const viewOrderStatus = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+
+    // Fetch the order by its ID, populating user details
+    const order = await Order.findById(orderId).populate("userId").populate("addressChosen._Id");
+
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    // Prepare order data to pass to the view
+    const orderData = {
+      orderStatus: order.orderStatus,
+      orderDate: order.createdAt,
+      orderNumber: order.orderNumber,
+      grandTotalCost: order.grandTotalCost,
+      paymentType: order.paymentType,
+      cartData: order.cartData,
+      addressChosen: order.addressChosen,
+      userId: order.userId._id,
+    };
+
+
+    const addressChosen = orderData.addressChosen;
+
+    const addressData = await Address.findOne({'address._id':addressChosen});    
+
+    const isCancelled = orderData.orderStatus === 'Cancelled';
+    const isDelivered = orderData.orderStatus === 'Delivered';
+    const selectedAddress = addressData.address.find(address => address._id.equals(orderData.addressChosen));
+    
+    // Pass order data to the view
+    res.render("orderStatusAdmin", { orderData , isCancelled,
+      isDelivered,addressData,selectedAddress,orderId});
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error while fetching order details");
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
 
 // order management page
 const orderManagement = async (req, res) => {
@@ -12,10 +68,16 @@ const orderManagement = async (req, res) => {
     let count = await Order.find().estimatedDocumentCount();
     let orderData = await Order
       .find()
-      .populate("userId").skip(skip).limit(limit);
+      .populate("userId")
+      .sort({createdAt:-1})
+      .skip(skip)
+      .limit(limit)
+      
      
-    console.log(orderData[0]);
-    console.log("order data::::",orderData);
+      // console.log("admin order",orderData.map(order => order.createdAt));
+
+    // console.log(orderData[0]);
+    // console.log("order data::::",orderData);
     res.render("orderManagement", { orderData, count, limit, currentPage: page,
       totalPages: Math.ceil(count / limit) });
   } catch (error) {
@@ -69,103 +131,46 @@ const changeStatusDelivered = async (req, res) => {
   }
 };
 
-//return
-// const changeStatusReturn = async (req, res) => {
-//   try {
-//     await Order.findOneAndUpdate(
-//       { _id: req.params.id },
-//       { $set: { orderStatus: "Return" } }
-//     );
-//     res.redirect("/admin/orderManagement");
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
 
-// const changeStatusReturn = async (req, res) => {
-//   try {
-//     const order = await Order.findOne({ _id: req.params.id }).populate("userId");
-//     if (!order) {
-//       throw new Error('Order not found');
-//     }
-
-//     const refundAmount = order.grandTotalCost - order.discountAmount;
-
-//     const user = await User.findById(order.userId._id);
-//     if (user) {
-//       user.wallet += refundAmount;
-
-//       const transaction = new Wallet({
-//         amount: refundAmount,
-//         status: 'Returned',
-//         description: `Refund for order #${order.orderNumber}`
-//       });
-
-//       await transaction.save();
-//       user.walletHistory.push(transaction._id);
-//       await user.save();
-//     }
-
-//     order.orderStatus = "Return";
-//     await order.save();
-//     console.log('Wallet History:', user.walletHistory);
-//     res.redirect("/admin/orderManagement");
-//   } catch (error) {
-//     console.error('Error processing return:', error);
-//     res.status(500).send('Server Error');
-//   }
-// };
 
 
 const changeStatusReturn = async (req, res) => {
   try {
-    // Fetch the order and populate the userId field
     const order = await Order.findOne({ _id: req.params.id }).populate("userId");
     if (!order) {
       throw new Error('Order not found');
     }
 
-    // Calculate the refund amount
     const refundAmount = order.grandTotalCost - order.discountAmount;
 
-    // Find the user associated with the order
     const user = await User.findById(order.userId._id);
     if (user) {
-      // Ensure user.wallet is initialized, if not set to 0
       if (user.wallet === undefined) {
         user.wallet = 0;
       }
 
-      // Add the refund amount to the user's wallet
       user.wallet += refundAmount;
 
-      // Create a wallet transaction for the return
       const transaction = new Wallet({
-        userId: user._id, // Make sure to associate the transaction with the user
+        userId: user._id, 
         amount: refundAmount,
         status: 'Returned',
         description: `Refund for order #${order.orderNumber}`
       });
 
-      // Save the transaction
       await transaction.save();
 
-      // Push the transaction ID to the walletHistory array
-      user.walletHistory = user.walletHistory || []; // Ensure walletHistory is initialized
+      user.walletHistory = user.walletHistory || []; 
       user.walletHistory.push(transaction._id);
 
-      // Save the updated user document with the new wallet balance and walletHistory
       await user.save();
     }
 
-    // Update the order status to "Returned"
     order.orderStatus = "Return";
     await order.save();
 
-    // Log the wallet history for debugging
     console.log('Wallet History:', user.walletHistory);
 
-    // Redirect to the order management page
     res.redirect("/admin/orderManagement");
   } catch (error) {
     console.error('Error processing return:', error);
@@ -179,11 +184,27 @@ const changeStatusCancelled = async (req, res) => {
   try {
     let orderData = await Order
       .findOne({ _id: req.params.id })
-      .populate("userId");
+      .populate("userId")
+      .populate("cartData.productId");
+     
     await User.findByIdAndUpdate(
       { _id: orderData.userId._id },
       // { wallet: orderData.grandTotalCost }
     );
+
+    for (let item of orderData.cartData) {
+      const product = await Product.findById(item.productId._id);
+
+      if (product) {
+        product.quantity += item.productQty;
+        await product.save();  
+        console.log(`Restored stock for product: ${product.name}, new stock: ${product.quantity}`);
+      }
+    }
+
+
+
+
     orderData.orderStatus = "Cancelled";
     orderData.save();
     console.log("orderData",orderData);
@@ -204,5 +225,5 @@ module.exports = {
   changeStatusDelivered,
   changeStatusShipped,
   changeStatusPending,
-  
+  viewOrderStatus,
 };

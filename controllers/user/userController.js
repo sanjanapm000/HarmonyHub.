@@ -7,6 +7,19 @@ const mongoose = require("mongoose")
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 const Review = require('../../models/reviewSchema');
+const Wallet = require('../../models/walletSchema')
+
+
+
+
+function generateReferralCode() {
+    return 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();  // Random code
+}
+
+
+
+
+
 
 
 const submitReview = async (req, res) => {
@@ -114,7 +127,7 @@ async function sendVerificationEmail(email, otp) {
 
 
 const signup = async (req, res) => {
-    const { name, phone, email, password } = req.body
+    const { name, phone, email, password, referralCode } = req.body
     try {
         const findUser = await User.findOne({ email });
         if (findUser) {
@@ -128,7 +141,7 @@ const signup = async (req, res) => {
             return res.json("email-error")
         }
         req.session.userOtp = otp;
-        req.session.userData = { name, phone, email, password };
+        req.session.userData = { name, phone, email, password, referralCode };
 
 
 
@@ -196,6 +209,9 @@ const securePassword = async (password) => {
     }
 }
 
+
+
+
 const verifyOTP = async (req, res) => {
     try {
         const { otp } = req.body;
@@ -218,13 +234,65 @@ const verifyOTP = async (req, res) => {
                 phone: user.phone,
                 password: passwordHash,
                 googleId: user.googleId || undefined,
-                facebookId: user.facebookId || undefined
+                facebookId: user.facebookId || undefined,
+                referralCode: generateReferralCode(),  
+                referredBy: user.referredBy || null
             })
+
+
+
+
+
+
+            if (user.referralCode) {
+                const referrer = await User.findOne({ referralCode: user.referralCode });
+                console.log("referrer",referrer);
+                
+    
+                if (referrer) {
+                    // Credit Rs. 20 to the new user
+                    saveUserData.wallet += 20;
+    
+                    // Credit Rs. 50 to the referrer
+                    referrer.wallet += 50;
+    
+                    // Create wallet transactions for both users
+                    const walletTransactionForNewUser = new Wallet({
+                        userId: saveUserData._id,
+                        amount: 20,
+                        status: 'Added',
+                        description: 'Referral Bonus'
+                    });
+    
+                    const walletTransactionForReferrer = new Wallet({
+                        userId: referrer._id,
+                        amount: 50,
+                        status: 'Added',
+                        description: 'Referral Bonus'
+                    });
+    
+                    // Save wallet transactions
+                    await walletTransactionForNewUser.save();
+                    await walletTransactionForReferrer.save();
+    
+                    // Update the walletHistory for both users
+                    saveUserData.walletHistory.push(walletTransactionForNewUser._id);
+                    referrer.walletHistory.push(walletTransactionForReferrer._id);
+    
+                    // Save both users
+                    await referrer.save();
+                }
+            }
+
+
+
+
+
 
             await saveUserData.save();
             req.session.user = saveUserData._id;
             delete req.session.userOtp; 
-            delete req.session.userData;
+             delete req.session.userData;
             return res.json({ success: true, redirectUrl: '/' });
         } else {
             console.log("Invalid OTP entered.");
@@ -378,6 +446,7 @@ const getAllProducts = async (req, res) => {
         const userData = await User.findOne({ _id: user });
         const categories = await Category.find({ isListed: true });
         const userdata = await User.findOne({ _id: user }).populate('wishlist');
+      
        
         
         const page = parseInt(req.query.page) || 1;
@@ -393,9 +462,8 @@ const getAllProducts = async (req, res) => {
         let filterQuery = { isBlocked : false };
        
 
-        if (selectedCategory) {
-            filterQuery.category = selectedCategory;
-        }
+        filterQuery['category'] = { $in: categories.map(category => category._id) };
+
 
         if (searchQuery) {
             filterQuery.$or = [
@@ -403,6 +471,8 @@ const getAllProducts = async (req, res) => {
                 { description: { $regex: searchQuery, $options: 'i' } }
             ];
         }
+
+
 
         let sortOptions = {};
         switch (sortOrder) {
@@ -478,182 +548,7 @@ const getAllProducts = async (req, res) => {
     }
 };
 
-// const getAllProducts = async (req, res) => {
-//     try {
-//         const user = req.session.user;
-//         const userData = await User.findOne({ _id: user });
-//         const categories = await Category.find({ isListed: true });
-//         const categoryIds = categories.map((category) => category._id.toString());
-//         const page = parseInt(req.query.page) || 1;
-//         const limit = 9;
-//         const skip = (page - 1) * limit;
 
-//         const sortOrder = req.query.sortOrder || '';
-//         const query = req.body.query || req.query.query || '';
-
-//         // Start with the category filter
-//         let filterQuery = {
-//             isBlocked: false,
-//             category: { $in: categoryIds },
-//         };
-
-//         if (req.query.category) {
-//             filterQuery.category = req.query.category;
-//         }
-
-//         // Add the search query filter
-//         if (query) {
-//             filterQuery.$or = [
-//                 { productName: { $regex: query, $options: 'i' } },
-//                 { description: { $regex: query, $options: 'i' } },
-//             ];
-//         }
-
-//         // Define the sort query based on sortOrder
-//         let sortQuery = {};
-//         if (sortOrder === 'productName_asc') {
-//             sortQuery.productName = 1;
-//         } else if (sortOrder === 'productName_desc') {
-//             sortQuery.productName = -1;
-//         } else if (sortOrder === 'price_asc') {
-//             sortQuery.salePrice = 1;
-//         } else if (sortOrder === 'price_desc') {
-//             sortQuery.salePrice = -1;
-//         } else if (sortOrder === 'sales_asc') {
-//             sortQuery.salesCount = 1;
-//         } else if (sortOrder === 'sales_desc') {
-//             sortQuery.salesCount = -1;
-//         } else if (sortOrder === 'newArrivals') {
-//             sortQuery.createdAt = -1;
-//         } else if (sortOrder === 'featured') {
-//             filterQuery.isFeatured = true;
-//             sortQuery.createdAt = -1;
-//         } else if (sortOrder === 'rating_asc') {
-//             sortQuery.averageRating = 1;
-//         } else if (sortOrder === 'rating_desc') {
-//             sortQuery.averageRating = -1;
-//         }
-
-//         // Apply the default sorting by salePrice if no sort option is selected
-//         if (Object.keys(sortQuery).length === 0) {
-//             sortQuery.salePrice = 1;  
-//         }
-
-//         // Fetch the filtered and sorted products
-//         const products = await Product.find(filterQuery)
-//             .populate('category')
-//             .sort(sortQuery) // Apply sorting only on filtered products
-//             .skip(skip)
-//             .limit(limit);
-
-//         products.forEach(product => {
-//             product.isOutOfStock = product.quantity === 0;
-//         });
-
-//         const totalProducts = await Product.countDocuments(filterQuery); // Count based on filtered products
-//         const totalPages = Math.ceil(totalProducts / limit);
-
-//         const categoriesWithIds = categories.map(category => ({ _id: category._id, name: category.name }));
-
-//         res.render("shop", {
-//             user: userData,
-//             products: products,
-//             categories: categoriesWithIds,
-//             totalProducts: totalProducts,
-//             currentPage: page,
-//             totalPages: totalPages,
-//             selectedCategory: req.query.category || null,
-//             selectedSortOrder: sortOrder,
-//             query: query,
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send("Error fetching products");
-//     }
-// };
-
-
-// const filterProduct = async (req, res) => {
-//     try {
-//         const sortOrder = req.query.sortOrder || '';
-//         const user = req.session.user;
-//         const category = req.query.category;
-//         const findCategory = category ? await Category.findOne({ _id: category }) : null;
-
-//         const query = {
-//             isBlocked: false,
-//         };
-
-//         if (findCategory) {
-//             query.category = findCategory._id;
-//         }
-
-//         let findProducts = await Product.find(query).lean();
-
-//         // Apply sorting after filtering by category
-//         if (sortOrder === 'productName_asc') {
-//             findProducts.sort((a, b) => a.productName.localeCompare(b.productName));
-//         } else if (sortOrder === 'productName_desc') {
-//             findProducts.sort((a, b) => b.productName.localeCompare(a.productName));
-//         } else if (sortOrder === 'price_asc') {
-//             findProducts.sort((a, b) => a.salePrice - b.salePrice);
-//         } else if (sortOrder === 'price_desc') {
-//             findProducts.sort((a, b) => b.salePrice - a.salePrice);
-//         } else if (sortOrder === 'sales_asc') {
-//             findProducts.sort((a, b) => a.salesCount - b.salesCount);
-//         } else if (sortOrder === 'sales_desc') {
-//             findProducts.sort((a, b) => b.salesCount - a.salesCount);
-//         } else if (sortOrder === 'newArrivals') {
-//             findProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-//         } else if (sortOrder === 'featured') {
-//             findProducts = findProducts.filter(product => product.isFeatured);
-//             findProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-//         } else if (sortOrder === 'rating_asc') {
-//             findProducts.sort((a, b) => a.averageRating - b.averageRating);
-//         } else if (sortOrder === 'rating_desc') {
-//             findProducts.sort((a, b) => b.averageRating - a.averageRating);
-//         }
-
-//         const categories = await Category.find({ isListed: true });
-//         let itemsPerPage = 6;
-//         let currentPage = parseInt(req.query.page) || 1;
-//         let startIndex = (currentPage - 1) * itemsPerPage;
-//         let endIndex = startIndex + itemsPerPage;
-//         let totalPages = Math.ceil(findProducts.length / itemsPerPage);
-//         const currentProduct = findProducts.slice(startIndex, endIndex);
-
-//         let userData = null;
-//         if (user) {
-//             userData = await User.findOne({ _id: user });
-//             if (userData) {
-//                 if (!userData.searchHistory) {
-//                     userData.searchHistory = [];
-//                 }
-//                 const searchEntry = {
-//                     category: findCategory ? findCategory._id : null,
-//                     searchedOn: new Date(),
-//                 };
-//                 userData.searchHistory.push(searchEntry);
-//                 await userData.save();
-//             }
-//         }
-
-//         req.session.filterProducts = currentProduct;
-//         res.render("shop", {
-//             user: userData,
-//             products: currentProduct,
-//             categories: categories,
-//             totalPages,
-//             currentPage,
-//             selectedCategory: req.query.category || null,
-//             selectedSortOrder: sortOrder,
-//             query: req.query.query || '',
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         res.send("page is not found");
-//     }
-// };
 
 const filterProduct = async (req, res) => {
     try {

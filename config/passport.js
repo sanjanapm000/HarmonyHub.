@@ -12,7 +12,7 @@ passport.use(new googleStrategy({
     scope:['profile','email']
 },
 async (accessToken,refreshToken,profile,done)=>{
-    console.log("Google Profile:", profile); // Log the profile information
+    console.log("Google Profile:", profile); 
 
     try {
         let user = await User.findOne({googleId:profile.id});
@@ -29,7 +29,7 @@ async (accessToken,refreshToken,profile,done)=>{
             return done(null,user);
         }
     } catch (error) {
-        console.error("Error during Google authentication:", error); // Log any errors
+        console.error("Error during Google authentication:", error); 
 
         return done(error,null);
     }
@@ -55,10 +55,10 @@ passport.deserializeUser((id,done)=>{
 
 
 passport.use(new FacebookStrategy({
-    clientID: process.env.FACEBOOK_APP_ID, // Your Facebook App ID
-    clientSecret: process.env.FACEBOOK_APP_SECRET, // Your Facebook App Secret
+    clientID: process.env.FACEBOOK_APP_ID, 
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
     callbackURL: '/auth/facebook/callback',
-    profileFields: ['id', 'displayName', 'emails'], // Specify the fields you want
+    profileFields: ['id', 'displayName', 'emails'], 
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
@@ -66,12 +66,10 @@ async (accessToken, refreshToken, profile, done) => {
         if (user) {
             return done(null, user);
         } else {
-            // Create a new user if not found
             user = new User({
                 name: profile.displayName,
                 email: profile.emails[0].value,
-                facebookId: profile.id, // Save the Facebook ID
-                // Any other fields you want to save
+                facebookId: profile.id, 
             });
             await user.save();
             return done(null, user);

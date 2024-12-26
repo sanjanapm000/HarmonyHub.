@@ -88,6 +88,7 @@
             display: flex;
             flex-grow: 1;
             justify-content: space-between;
+          
         }
         
         .cart_item_product,
@@ -96,10 +97,11 @@
         .cart_item_price,
         .cart_item_total,
         .cart_item_actions {
-            display: flex;
+            display: flex; 
             flex-direction: column;
-            justify-content: center;
+             justify-content: center;
             text-align: center;
+          
         }
 
         .cart_item_title {
@@ -109,8 +111,8 @@
         }
 
         .cart_item_text {
-            font-size: 18px;
-            font-weight: 500;
+            width:120px;
+           
         }
 
         .order_total {
@@ -191,17 +193,17 @@
                                     <div class="cart_item_product cart_info_col">
                                         <div class="cart_item_title">Product</div>
                                     </div>
-                                    <div class="cart_item_name cart_info_col">
+                                    <div style="margin-left: -90px;">
                                         <div class="cart_item_title">Name</div>
                                     </div>
-                                    <div class="cart_item_quantity cart_info_col">
-                                        <div class="cart_item_title">Quantity</div>
+                                    <div style="margin-left: -75px;">
+                                        <div class="cart_item_title" >Quantity</div>
                                     </div>
-                                    <div class="cart_item_price cart_info_col">
-                                        <div class="cart_item_title">Price</div>
+                                    <div style="margin-left: -30px;">
+                                        <div class="cart_item_title" >Price</div>
                                     </div>
-                                    <div class="cart_item_total cart_info_col">
-                                        <div class="cart_item_title">Total</div>
+                                    <div style="margin-right: -35px;">
+                                        <div class="cart_item_title" >Total</div>
                                     </div>
                                     <div class="cart_item_actions cart_info_col">
                                         <div class="cart_item_title">Actions</div>
@@ -215,23 +217,23 @@
                                 <div class="cart_item_image"><a href="/product/<%= item.productId._id %>"><img src="/uploads/product-images/<%= item.productId.productImg[0] %>" alt=""></a></div>
                                 <div class="cart_item_info d-flex flex-md-row flex-column justify-content-between">
                                     <div class="cart_item_name cart_info_col">
-                                        <div class="cart_item_text"><%= item.productId.productName %></div>
+                                        <div class="cart_item_text" ><%= item.productId.productName %></div>
                                     </div>
                                     <div class="cart_item_quantity cart_info_col">
                                         <div class="cart_item_text">
-                                            <div class="quantity_buttons">
+                                            <div class="quantity_buttons" style="margin-left: -120px;">
                                                 <button type="button" class="btn btn-danger btn-sm"
                                                  onclick="cartDec('<%= item._id %>','<%= index %>')">-</button>
-                                                <span  id="productQty<%= index %>"><%= item.productQty %></span>
+                                                <span  id="productQty<%= index %>" style="margin-left:15px;margin-right:15px;"><%= item.productQty %></span>
                                                 <button type="button" class="btn btn-primary btn-sm"
                                                 onclick="cartInc('<%= item._id %>','<%= index %>')">+</button>                                            </div>
                                         </div>
                                     </div>
-                                    <div class="cart_item_price cart_info_col">
-                                        <div class="cart_item_text">₹<%= item.productId.salePrice || item.productId.productPrice %></div>
+                                    <div class="cart_item_price cart_info_col" style="margin-left:-60px">
+                                        <div class="cart_item_text" id="totalPrice">₹<%= item.productId.salePrice || item.productId.productPrice %></div>
                                     </div>
                                     <div class="cart_item_total cart_info_col">
-                                        <div class="cart_item_text">₹<%= item.totalCostPerProduct %></div>
+                                        <div class="cart_item_text" id="totalCostPerProduct<%= index %>">₹<%= item.totalCostPerProduct %></div>
                                         <div class="cart-item-stock">Stock: <span id="stockLimit<%= index %>"><%= item.productStock %></span></div>
 
                                     </div>
@@ -250,7 +252,7 @@
                     <div class="order_total">
                         <div class="order_total_content text-md-right">
                             <div class="order_total_title">Order Total:</div>
-                            <div class="order_total_amount">₹<%= grandTotal %></div>
+                            <div class="order_total_amount" id="total-price">₹<%= grandTotal %></div>
                         </div>
                     </div>
 
@@ -268,102 +270,91 @@
     </div>
 </div>
 
+
+
 <%- include("../../views/partials/user/footer") %>
 
 <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Function to update the product quantity
-   
     
     async function cartDec(id, index) {
-      try {
-        let stockLimitElement = document.getElementById('stockLimit' + index).innerText;
+    try {
         let productQuantityElement = document.getElementById('productQty' + index);
         let totalCostPerProductElement = document.getElementById('totalCostPerProduct' + index);
-        let totalPriceElement = document.getElementById('totalPrice');
         let grandTotalElement = document.getElementById('total-price');
 
-        if (Number(productQuantityElement.innerText) == 1)
-          return Swal.fire({
-            icon: "error",
-            title: "Minimum One Quantity",
-            text: "Please select atleast one quantity",
-          });
+        let currentQuantity = Number(productQuantityElement.innerText);
+        let productPrice = Number(totalCostPerProductElement.innerText.replace('₹', '')) / currentQuantity; // Get the price per unit
 
-
-          productQuantityElement.innerText = Number(productQuantityElement.innerText)  - 1;
-
-
-        let response = await fetch('/decQty/' + id, { method: 'PUT' });
-        let data = await response.json();
-
-        if (data.success) {
-    //         productQuantityElement.innerText = data.cartProduct.productQuantity;
-    //   totalCostPerProductElement.innerText = '$' + data.cartProduct.totalCostPerProduct;
-    //   totalPriceElement.innerText = '$' + data.cartProduct.totalCostPerProduct * data.cartProduct.productQuantity; // Update total for that product
-    //   grandTotalElement.innerText = '$' + data.grandTotal;
-          console.log('hello')
-          location.reload()
+        if (currentQuantity === 1) {
+            return Swal.fire({
+                icon: "error",
+                title: "Minimum One Quantity",
+                text: "Please select at least one quantity",
+            });
         }
 
-        // productQuantityElement.innerHTML = await data.cartProduct.productQuantity;
-        // totalCostPerProductElement.innerHTML = '₹' + await data.cartProduct.totalCostPerProduct;
-        // totalPriceElement.innerHTML = '₹' + await data.grandTotal
-        // grandTotalElement.innerHTML = '₹' + await data.grandTotal
-      } catch (error) {
-        console.error(error)
-      }
+        // Decrease the quantity
+        let newQuantity = currentQuantity - 1;
+        productQuantityElement.innerText = newQuantity;
+
+        // Calculate the new total cost for this product
+        let newTotalCost = productPrice * newQuantity;
+        totalCostPerProductElement.innerText = '₹' + newTotalCost;
+
+        // Update the grand total
+        let currentGrandTotal = Number(grandTotalElement.innerText.replace('₹', ''));
+        grandTotalElement.innerText = '₹' + (currentGrandTotal - productPrice); // Update grand total
+
+        // Send the request to update the quantity in the backend
+        await fetch('/decQty/' + id, { method: 'PUT' });
+    } catch (error) {
+        console.error(error);
     }
+}
   </script>
   <!-- increase cart quantity  -->
   <script>
     async function cartInc(id, index) {
-      try {
+    try {
         let stockLimitElement = document.getElementById('stockLimit' + index).innerText;
         let productQuantityElement = document.getElementById('productQty' + index);
         let totalCostPerProductElement = document.getElementById('totalCostPerProduct' + index);
-        let totalPriceElement = document.getElementById('totalPrice');
         let grandTotalElement = document.getElementById('total-price');
 
-        if (Number(productQuantityElement.innerText) >= Number(stockLimitElement))
-          return Swal.fire({
-            icon: "info",
-            title: "Maximum Quantity",
-            text: "Something went wrong!",
-          });
+        // Get the current quantity and price
+        let currentQuantity = Number(productQuantityElement.innerText);
+        let productPrice = Number(totalCostPerProductElement.innerText.replace('₹', '')) / currentQuantity; // Get the price per unit
 
-
-          productQuantityElement.innerText = Number(productQuantityElement.innerText)  + 1;
-
-
-        let response = await fetch('/incQty/' + id, { method: 'PUT' })
-        let data = await response.json()
-
-        if (data.success) {
-        
-          console.log('hello')
-          
-        //   redirect('/mycart')
-        //   window.location.href = 'myCart'
-        //   location.reload()
-    //     productQuantityElement.innerText = data.cartProduct.productQuantity;
-    //   totalCostPerProductElement.innerText = '$' + data.cartProduct.totalCostPerProduct;
-    //   totalPriceElement.innerText = '$' + data.cartProduct.totalCostPerProduct * data.cartProduct.productQuantity; // Update total for that product
-    //   grandTotalElement.innerText = '$' + data.grandTotal;
-    window.location.reload();
-        
+        if (currentQuantity >= Number(stockLimitElement)) {
+            return Swal.fire({
+                icon: "info",
+                title: "Maximum Quantity",
+                text: "You cannot increase the quantity beyond available stock.",
+            });
         }
-        // productQuantityElement.innerHTML = data.cartProduct.productQuantity;
-       
-        // totalCostPerProductElement.innerHTML = '₹' + data.cartProduct.totalCostPerProduct;
-        // totalPriceElement.innerHTML = '₹' + data.grandTotal
-        // grandTotalElement.innerHTML = '₹' + data.grandTotal
 
-      } catch (error) {
-        console.error(error)
-      }
+        // Increase the quantity
+        let newQuantity = currentQuantity + 1;
+        productQuantityElement.innerText = newQuantity;
+
+        // Calculate the new total cost for this product
+        let newTotalCost = productPrice * newQuantity;
+        totalCostPerProductElement.innerText = '₹' + newTotalCost;
+
+        // Update the grand total
+        let currentGrandTotal = Number(grandTotalElement.innerText.replace('₹', ''));
+        grandTotalElement.innerText = '₹' + (currentGrandTotal + productPrice); // Update grand total
+
+        // Send the request to update the quantity in the backend
+        await fetch('/incQty/' + id, { method: 'PUT' });
+    } catch (error) {
+        console.error(error);
     }
+}
+    
   </script>
   <!-- -- delete cart-- -->
   <script>

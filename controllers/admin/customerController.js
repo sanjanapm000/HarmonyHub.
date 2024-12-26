@@ -67,7 +67,7 @@ const customerBlocked = async (req, res) => {
                 res.clearCookie('connect.sid');
 
                 // Redirect to the homepage (or login page) since the user is logged out
-                return res.redirect('/');
+                // return res.redirect('/');
             });
         } else {
             // Redirect to the admin users page if the logged-in user is not the one being blocked

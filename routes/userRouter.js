@@ -98,6 +98,9 @@ router.get('/checkout/processPayment',userAuth,cartController.processWalletPayme
 router.get("/order",blockedUserCheck,userAuth,orderDetController.getUserOrders);
 router.post('/order/cancel/:id', orderDetController.cancelOrder);
 router.get('/orderManagement/orderStatus/:id', orderDetController.orderStatusPage);
+router.post('/order/return/:orderId', orderDetController.returnOrder);
+router.post("/order/cancelProduct/:id/:orderId",orderDetController.cancelProduct);
+
 
 
 

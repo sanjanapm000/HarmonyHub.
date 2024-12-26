@@ -243,9 +243,10 @@
             <select id="salesFilter" class="form-control">
                 <option value="daily">Daily</option>
                 <option value="monthly">Monthly</option>
+                <option value="custom">Custom Date</option>
             </select>
-            <input type="date" id="startDate" placeholder="Start Date" class="form-control" />
-            <input type="date" id="endDate" placeholder="End Date" class="form-control" />
+            <input type="date" id="startDate" class="custom-date" style="display: none;" />
+            <input type="date" id="endDate" class="custom-date" style="display: none;" />
             <button id="filterBtn" class="btn btn-primary">Filter</button>
         </div>
 
@@ -321,21 +322,28 @@
         const salesChartElement = document.getElementById('salesChart').getContext('2d');
         let salesChart;
 
-        // Fetch sales data based on the selected filter (daily or monthly)
-        const fetchSalesData = async (filter, startDate, endDate) => {
-            try {
-                const response = await fetch(`/admin/sales-data?filter=${filter}&startDate=${startDate}&endDate=${endDate}`);
-                const data = await response.json();
-                if (data.success) {
-                    updateSalesData(data.data);
-                } else {
-                    alert('Error fetching sales data');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error fetching sales data');
-            }
-        };
+        const fetchSalesData = async (filter, startDate = '', endDate = '') => {
+    try {
+        let url = '/admin/sales-data';
+        if (filter === 'custom') {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        } else {
+            url += `?filter=${filter}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateSalesData(data.data);
+        } else {
+            alert('Error fetching sales data');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error fetching sales data');
+    }
+};
 
         // Update the sales data on the page
         const updateSalesData = (data) => {
@@ -375,14 +383,16 @@
 
         // Update the chart with the new sales data
         const updateChart = (data) => {
+            // const labels = data.map(item => {
+            //     if (item._id.day) {
+            //         return `${item._id.day}/${item._id.month}/${item._id.year}`;
+            //     } else {
+            //         return `${item._id.month}/${item._id.year}`;
+            //     }
+            // });
             const labels = data.map(item => {
-                if (item._id.day) {
-                    return `${item._id.day}/${item._id.month}/${item._id.year}`;
-                } else {
-                    return `${item._id.month}/${item._id.year}`;
-                }
-            });
-
+            return item._id.day ? `${item._id.day}/${item._id.month}/${item._id.year}` : `${item._id.month}/${item._id.year}`;
+        });
             const salesData = data.map(item => item.totalSales);
 
             if (salesChart) {
@@ -414,23 +424,62 @@
         };
 
         // Handle filter button click
-        document.getElementById('filterBtn').addEventListener('click', () => {
-            const filter = document.getElementById('salesFilter').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+    //     document.getElementById('filterBtn').addEventListener('click', () => {
+    //         const filter = document.getElementById('salesFilter').value;
+    //         const startDate = document.getElementById('startDate').value;
+    //         const endDate = document.getElementById('endDate').value;
 
-            fetchSalesData(filter, startDate, endDate);
-        });
+    //         fetchSalesData(filter, startDate, endDate);
+    //     });
 
-        // Handle the initial sales data fetch with daily filter
-        fetchSalesData('daily', '', '');
+    //     // Handle the initial sales data fetch with daily filter
+    //     fetchSalesData('daily', '', '');
 
-        // Download report button (optional)
-        // document.getElementById('downloadReportBtn').addEventListener('click', () => {
-        //     window.location.href = '/admin/sales/report';
-        // });
+    //     // Download report button (optional)
+    //     // document.getElementById('downloadReportBtn').addEventListener('click', () => {
+    //     //     window.location.href = '/admin/sales/report';
+    //     // });
+
+    //     document.getElementById('salesFilter').addEventListener('change', (event) => {
+    //     const value = event.target.value;
+    //     const startDateInput = document.getElementById('startDate');
+    //     const endDateInput = document.getElementById('endDate');
+
+    //     if (value === 'custom') {
+    //         startDateInput.style.display = 'inline-block';
+    //         endDateInput.style.display = 'inline-block';
+    //     } else {
+    //         startDateInput.style.display = 'none';
+    //         endDateInput.style.display = 'none';
+    //     }
+    // });
 
 
+    document.getElementById('salesFilter').addEventListener('change', function() {
+    const customDateInputs = document.querySelectorAll('.custom-date');
+    if (this.value === 'custom') {
+        customDateInputs.forEach(input => input.style.display = 'inline-block');
+    } else {
+        customDateInputs.forEach(input => input.style.display = 'none');
+    }
+});
+fetchSalesData('daily', '', '');
+// Update the filter button click handler
+document.getElementById('filterBtn').addEventListener('click', () => {
+    const filter = document.getElementById('salesFilter').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (filter === 'custom') {
+        if (!startDate || !endDate) {
+            alert('Please select both start and end dates');
+            return;
+        }
+        fetchSalesData('custom', startDate, endDate);
+    } else {
+        fetchSalesData(filter);
+    }
+});
     </script>
 
 

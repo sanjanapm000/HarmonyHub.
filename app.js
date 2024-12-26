@@ -47,7 +47,16 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/',userRouter);
 app.use('/admin',adminRouter);
 
+app.use("/*", async (req, res) => {
+  try {
+   
 
+    res.render("page-404");
+  } catch (error) {
+    console.error("Error occurred while fetching cart data:", error);
+   
+  }
+});
 app.listen(process.env.PORT,()=>{
   console.log(`Server running on http://localhost:${process.env.PORT}`);
   
