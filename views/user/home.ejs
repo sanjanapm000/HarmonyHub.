@@ -203,11 +203,11 @@
                             <% if (products[i].isOutOfStock) { %>
                                 <div class="out-of-stock-message">Out of Stock</div>
                             <% } else { %>
-                                <form action="/mycart/<%= products[i]._id %>" method="POST">
+                                <!-- <form action="/mycart/<%= products[i]._id %>" method="POST"> -->
                                     <input type="hidden" name="productId" value="<%= products[i]._id %>">
                                     <!-- <input type="number" name="quantity" min="1" value="1"> -->
-                                    <button type="submit" class="add-to-cart-btn">Add to Cart</button>
-                                </form>
+                                    <button type="submit" class="add-to-cart-btn" onclick="return addToCart('<%= products[i]._id %>')">Add to Cart</button>
+                                <!-- </form> -->
                             <% } %>
                         </div>
                     </div>
@@ -241,8 +241,8 @@ function addToWishlist(productId) {
                 });
             } else {
                 Swal.fire({
-                    title: 'Error',
-                    text: 'There was an error processing your request',
+                    title: 'Warning',
+                    text: 'Please log in to add the product to whishlist',
                     icon: 'error',
                     timer: 2000
                 });
@@ -259,5 +259,36 @@ function addToWishlist(productId) {
     });
 }
 
+
+function addToCart(productId) {
+      console.log("from addtocart",productId)
+     fetch(`/myCart/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // credentials: 'same-origin'
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Item Added to Cart',
+              text:  data.message,
+              showConfirmButton: false,
+              timer: 1500
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: data.message || 'Failed to add product to cart'
+            });
+          }
+
+
+        })
+    }
 </script>
 <%- include("../../views/partials/user/footer") %>

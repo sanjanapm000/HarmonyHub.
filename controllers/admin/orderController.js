@@ -61,17 +61,21 @@ const viewOrderStatus = async (req, res) => {
 // order management page
 const orderManagement = async (req, res) => {
   try {
+
     let page = Number(req.query.page) || 1;
     let limit = 15;
     let skip = (page - 1) * limit;
 
     let count = await Order.find().estimatedDocumentCount();
     let orderData = await Order
-      .find()
-      .populate("userId")
-      .sort({createdAt:1})
+      .find({})
+      .populate('userId')
+      .sort({ createdAt: -1 }) 
       .skip(skip)
-      .limit(limit)
+      .limit(limit);
+  
+      
+      
       
      
       // console.log("admin order",orderData.map(order => order.createdAt));

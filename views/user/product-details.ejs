@@ -138,6 +138,7 @@
             </div> -->
 
             <h3>Price: ₹<%= product.salePrice %> <del>₹<%= product.regularPrice %></del></h3>
+            <h4 style="color: green;"><%= product.productOffer %>% OFF</h4>
             <p><strong>Stocks Left:</strong> <%= product.quantity %></p>
             <!-- Availability -->
             <p><strong>Availability:</strong> 
@@ -156,11 +157,11 @@
             <!-- Add to Cart Button (if In Stock) -->
             <% if (product.status === 'Available') { %>
                 <!-- <button class="btn btn-primary"><a href="/mycart" style="color: white;">Add to Cart</a></button> -->
-                <form action="/mycart/<%= product._id %>" method="POST">
+                <!-- <form action="/mycart/<%= product._id %>" method="POST"> -->
                     <input type="hidden" name="productId" value="<%= product._id %>">
                    QTY: <input type="number" name="quantity" min="1" value="1">
-                    <button type="submit" class="add-to-cart-btn" onclick="addToCart()" style="background-color: rgb(28, 43, 43); color: white;">Add to Cart</button>
-                </form>
+                    <button type="submit" class="add-to-cart-btn" onclick="return addToCart('<%= product._id %>')" style="background-color: rgb(28, 43, 43); color: white;">Add to Cart</button>
+                <!-- </form> -->
             <% } %>
         </div>
     </div>
@@ -267,16 +268,46 @@
     });
 
 
-    function addToCart() {
+//     function addToCart() {
 
-Swal.fire({
-  icon: 'success',
-  title: 'Item Added to Cart',
-  showConfirmButton: false,
-  timer: 1500
-});
-}
+// Swal.fire({
+//   icon: 'success',
+//   title: 'Item Added to Cart',
+//   showConfirmButton: false,
+//   timer: 1500
+// });
+// }
 
+function addToCart(productId) {
+      console.log("from addtocart",productId)
+     fetch(`/myCart/${productId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // credentials: 'same-origin'
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Item Added to Cart',
+              text:  data.message,
+              showConfirmButton: false,
+              timer: 1500
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: data.message || 'Failed to add product to cart'
+            });
+          }
+
+
+        })
+    }
 
 
 

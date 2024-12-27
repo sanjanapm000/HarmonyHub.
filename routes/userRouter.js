@@ -12,6 +12,10 @@ const { userAuth } = require('../middlewares/auth');
 const blockedUserCheck = require("../middlewares/blockUserCheck.js");
 const router = express.Router();
 
+
+router.get('/contact',(req,res)=>{
+    res.render('contactus');
+})
 router.get('/pageNotFound',userController.pageNotFound);
 router.get('/',userController.loadHomePage);
 router.get('/signup',userController.loadSignup);
