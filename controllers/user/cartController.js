@@ -57,6 +57,7 @@ const getMyCart = async (req, res) => {
                     itemTotal,
                 };
             });
+           
 
             const grandTotal = updatedCartData.reduce((total, item) => total + item.itemTotal, 0);
 
@@ -178,7 +179,7 @@ const incQty = async (req, res) => {
 
 const checkoutPage = async (req, res) => {
     try {
-        
+        delete req.session.discountAmount;
         
         console.log('Selected address:', req.body.addressChosen);
         const user = await User.findById(req.session.user._id || req.session.user);
@@ -198,6 +199,20 @@ const checkoutPage = async (req, res) => {
         }
 
        
+   // Validate stock before proceeding
+   for (const item of cartData) {
+    const product = await Product.findById(item.productId._id);
+    
+    if (!product || product.quantity < item.productQty) {
+        // Redirect to cart with error message
+        req.session.stockError = `${item.productId.productName} is out of stock or has insufficient quantity`;
+        return res.redirect('/mycart');
+    }
+}
+
+
+
+
 
         let totalAmount = 0;
         cartData.forEach(item => {
@@ -428,7 +443,7 @@ const processOrder = async (req, res) => {
             grandTotalCost += item.productQty * item.totalCostPerProduct; 
         });
 
-        let discountAmount = req.body.discountAmount || 0;  
+        let discountAmount = req.session.discountAmount || 0;  
 
         const grandTotalAfterDiscount = grandTotalCost - discountAmount;
         
@@ -512,7 +527,7 @@ const processOrder = async (req, res) => {
         try {
             await Order.findByIdAndUpdate(req.session.currentOrder._id, {
                 paymentType: 'COD',
-                paymentStatus: 'Pending'
+                paymentStatus: 'Completed'
             });
             if(req.session.grandTotal >1000){
                 return res.status(400).json({success:false,message:"No COD available for orders above 1000 rupees"});
@@ -926,7 +941,48 @@ const processOrder = async (req, res) => {
         }
     };
 
-
+    const validateStock = async (req, res) => {
+        try {
+            const userId = req.session.user._id || req.session.user;
+            
+            // Get cart items with product details
+            const cartItems = await Cart.find({ userId }).populate('productId');
+            
+            let outOfStockItems = [];
+    
+            // Check each cart item
+            for (const item of cartItems) {
+                // Get current product stock
+                const product = await Product.findById(item.productId._id);
+                
+                if (!product) {
+                    outOfStockItems.push('Product not found');
+                    continue;
+                }
+    
+                // Check if requested quantity is available
+                if (product.quantity < item.productQty) {
+                    outOfStockItems.push(product.productName);
+                }
+            }
+    
+            if (outOfStockItems.length > 0) {
+                return res.json({
+                    valid: false,
+                    message: `The following items are out of stock: ${outOfStockItems.join(', ')}`
+                });
+            }
+    
+            res.json({ valid: true });
+    
+        } catch (error) {
+            console.error('Stock validation error:', error);
+            res.status(500).json({
+                valid: false,
+                message: 'Error validating stock'
+            });
+        }
+    };
 
 
     module.exports = {
@@ -944,4 +1000,5 @@ const processOrder = async (req, res) => {
         verifyPayment,
         removeCoupon,
         processWalletPayment,
+        validateStock,
     };

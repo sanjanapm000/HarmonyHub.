@@ -290,10 +290,10 @@ const verifyOTP = async (req, res) => {
 
 
             await saveUserData.save();
-            req.session.user = saveUserData._id;
+            // req.session.user = saveUserData._id;
             delete req.session.userOtp; 
              delete req.session.userData;
-            return res.json({ success: true, redirectUrl: '/' });
+            return res.json({ success: true, redirectUrl: '/login' });
         } else {
             console.log("Invalid OTP entered.");
             return res.status(400).json({ success: false, message: "Invalid OTP, Please try again!" })

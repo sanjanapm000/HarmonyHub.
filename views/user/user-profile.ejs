@@ -327,16 +327,22 @@
                                   <td>
                                     <%= order.orderStatus %>
                                   </td>
-                                  <td>₹<%= order.grandTotalCost %>
+                                  <td>₹<%= order.grandTotalAfterDiscount %>
                                   </td>
                                   <td>
-                                    <% if (order.orderStatus !=='Cancelled' ) { %>
+                                    <!-- <% if (order.orderStatus !=='Cancelled' ) { %>
                                       <form action="/order/cancel/<%= order._id %>" method="POST">
                                         <button type="submit" class="btn btn-danger btn-small d-block">Cancel</button>
                                       </form>
                                       <% } else { %>
                                         <button class="btn btn-secondary btn-small d-block" disabled>Cancelled</button>
-                                        <% } %>
+                                        <% } %> -->
+
+                                        <% if (order.orderStatus !== 'Cancelled') { %>
+                                          <button onclick="cancelOrder('<%= order._id %>')" class="btn btn-danger btn-small d-block">Cancel</button>
+                                      <% } else { %>
+                                          <button class="btn btn-secondary btn-small d-block" disabled>Cancelled</button>
+                                      <% } %>
 
                                           <a href="/orderManagement/orderStatus/<%= order._id %>">View order details</a>
                                   </td>
@@ -486,7 +492,49 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
 
  
-
+  <script>
+    async function cancelOrder(orderId) {
+        try {
+            const response = await fetch(`/order/cancel/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            const result = await response.json();
+    
+            if (result.success) {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Order Cancelled',
+                    text: 'Your order has been cancelled successfully',
+                    showConfirmButton: true
+                }).then(() => {
+                    // Reload the page to show updated status
+                    window.location.reload();
+                });
+            } else {
+                // Show error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Could not cancel order',
+                    showConfirmButton: true
+                });
+            }
+        } catch (error) {
+            console.error('Error cancelling order:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.',
+                showConfirmButton: true
+            });
+        }
+    }
+    </script>
 
 
 

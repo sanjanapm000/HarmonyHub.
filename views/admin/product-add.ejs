@@ -135,7 +135,6 @@
                                                                    <input class="form-control" type="file" name="images" id="input1"
                                                                        accept="image/png, image/jpeg, image/jpg"
                                                                        onchange="viewImage1(event), viewImage(event, 1)">
-                                                                       <div id="images-error" class="error-message"></div>
                                                                </div>
                                                                <div class="image-cropper d-flex align-items-center"
                                                                    style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
@@ -194,6 +193,8 @@
                                                            </div>
                           
                                                        </div>
+                                                       <!-- <div id="images-error" class="error-message"></div> -->
+
                            </div>
                            <div>
                                <button class="btn btn-md rounded font-sm hover-up btn-success"  type="submit" onclick="validateAndSubmit()
@@ -306,9 +307,10 @@
 
 
 function validateForm() {
-    clearErrorMessages();  // Clear previous errors
+     clearErrorMessages();  // Clear previous errors
 
     let isValid = true;
+    // console.log("Validating form...");
 
     // Get form values
     const name = document.getElementsByName('productName')[0].value;
@@ -316,9 +318,17 @@ function validateForm() {
     const price = document.getElementsByName('regularPrice')[0].value;
     const saleprice = document.getElementsByName('salePrice')[0].value;
     const quantity = document.getElementsByName('quantity')[0].value;
-    const color = document.getElementsByName('color')[0].value;
     const category = document.getElementsByName('category')[0].value;
-    const images = document.getElementById('input1');
+    const image1 = document.getElementById('input1');
+    const image2 = document.getElementById('input2');
+    const image3 = document.getElementById('input3');
+    const image4 = document.getElementById('input4');
+
+console.log("images",image1.files,image2.files,image3.files,image4.files)
+
+
+
+    console.log("Validating form...");
 
     // Validation checks
     if (name.trim() === "") {
@@ -360,15 +370,16 @@ function validateForm() {
         isValid = false;
     }
 
-    if (color.trim() === "") {
-        displayErrorMessage('color-error', 'Please enter a color.');
-        isValid = false;
-    }
+   
 
-    if (images.files.length === 0) {
-        displayErrorMessage("images-error", 'Please select an image.');
+    
+
+    if((image1.files.length + image2.files.length + image3.files.length + image4.files.length) <= 2){
+        alert("Please choose atleast three images.")
         isValid = false;
     }
+    
+   
 
     return isValid;  // Return validation status
 }

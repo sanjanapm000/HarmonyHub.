@@ -260,8 +260,13 @@
                         
                         <button type="button" class="button cart_button_clear" >
                           <a href="/products" style="color: white;">Continue Shopping</a></button>
-                          <%if(grandTotal>0){%> 
+                          <!-- <%if(grandTotal>0){%> 
                         <button type="button" class="button cart_button_checkout"> <a href="/checkout" style="color: white;">Checkout</a> </button>
+                        <%}%> -->
+                        <%if(grandTotal>0){%> 
+                            <button type="button" class="button cart_button_checkout" onclick="validateStockAndCheckout()">
+                                Checkout
+                            </button>
                         <%}%>
                     </div>
                 </div>
@@ -391,3 +396,46 @@
       }
     }
 </script>
+<script>
+    async function validateStockAndCheckout() {
+        try {
+            // Check stock for all cart items
+            const response = await fetch('/validate-stock', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+
+           
+            const result = await response.json();
+      console.log("result",result)
+            if (result.valid) {
+                // If stock is valid, proceed to checkout
+                window.location.href = '/checkout';
+            } else {
+                // If any item is out of stock
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Out of Stock',
+                    text: result.message || 'Some items in your cart are out of stock',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Refresh Cart',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        location.reload(); // Refresh the page to update stock
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error validating stock:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.',
+            });
+        }
+    }
+    </script>
+    

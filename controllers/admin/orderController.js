@@ -69,7 +69,7 @@ const orderManagement = async (req, res) => {
     let orderData = await Order
       .find()
       .populate("userId")
-      .sort({createdAt:-1})
+      .sort({createdAt:1})
       .skip(skip)
       .limit(limit)
       

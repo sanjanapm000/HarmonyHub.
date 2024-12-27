@@ -79,6 +79,7 @@ router.post('/mycart/:id',blockedUserCheck,userAuth,cartController.addToCart);
 router.delete('/removeFromCart/:id',blockedUserCheck, userAuth,cartController.deleteFromCart);
 router.put('/decQty/:id', blockedUserCheck,userAuth,cartController.decQty);
 router.put('/incQty/:id', blockedUserCheck,userAuth,cartController.incQty);
+router.get('/validate-stock', userAuth, cartController.validateStock);
 
 //checkout
 router.get("/checkout",blockedUserCheck,userAuth,cartController.checkoutPage);
@@ -100,6 +101,7 @@ router.post('/order/cancel/:id', orderDetController.cancelOrder);
 router.get('/orderManagement/orderStatus/:id', orderDetController.orderStatusPage);
 router.post('/order/return/:orderId', orderDetController.returnOrder);
 router.post("/order/cancelProduct/:id/:orderId",orderDetController.cancelProduct);
+router.post('/order/returnProduct/:productId/:orderId',orderDetController.returnProduct)
 
 
 
@@ -108,6 +110,14 @@ router.post("/order/cancelProduct/:id/:orderId",orderDetController.cancelProduct
 router.get('/wishlist',blockedUserCheck,userAuth,wishlistController.loadWishlist);
 router.post('/toggleWishlist',blockedUserCheck,userAuth,wishlistController.toggleWishlist);
 router.get('/removeFromWishlist',userAuth,wishlistController.removeProduct);
+
+
+
+
+
+
+
+
 
 
 

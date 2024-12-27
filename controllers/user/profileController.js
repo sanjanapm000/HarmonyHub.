@@ -345,16 +345,48 @@ const deleteAddress = async (req,res)=>{
     }
 }
 
-const invoiceDownload = async(req,res)=>{
-try {
-     const orderData = await Order.findOne({_id:req.params.id}).populate('addressChosen._Id');
-    const stream = res.writeHead(200,{"Content-Type":"application/pdf","Content-Disposition":"attachment;filename=invoice.pdf"});
-    generatevoice((chunk)=> stream.write(chunk),()=> stream.end(),orderData);
-} catch (error) {
-    console.error(error);
+// const invoiceDownload = async(req,res)=>{
+// try {
+//      const orderData = await Order.findOne({_id:req.params.id}).populate('addressChosen._Id');
+//     const stream = res.writeHead(200,{"Content-Type":"application/pdf","Content-Disposition":"attachment;filename=invoice.pdf"});
+//     generatevoice((chunk)=> stream.write(chunk),()=> stream.end(),orderData);
+// } catch (error) {
+//     console.error(error);
     
-}
-}
+// }
+// }
+const invoiceDownload = async(req,res)=>{
+    try {
+        const orderData = await Order.findOne({_id:req.params.id})
+            .populate('userId')
+            .populate('addressChosen')  // Make sure this field name matches your schema
+            .populate({
+                path: 'cartData.productId',
+                populate: {
+                    path: 'category'
+                }
+            });
+
+        if (!orderData) {
+            return res.status(404).send('Order not found');
+        }
+
+        const stream = res.writeHead(200, {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment;filename=invoice_${orderData.orderNumber}.pdf`
+        });
+
+        generatevoice(
+            (chunk) => stream.write(chunk),
+            () => stream.end(),
+            orderData
+        );
+
+    } catch (error) {
+        console.error('Invoice download error:', error);
+        res.status(500).send('Error generating invoice');
+    }
+};
 
 module.exports ={
     getForgotPassPage,

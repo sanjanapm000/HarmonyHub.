@@ -9,7 +9,7 @@
                         <div class="statusContent">
                             <div class="col-sm-12">
                                 <div class="statusTop">
-                                    <p><strong>Status:</strong></p>
+                                    <p><strong>Order Status:</strong></p>
                                     <p>
                                         <%= orderData.orderStatus %>
                                     </p>
@@ -150,13 +150,31 @@
                                                         <td><a style="font-size: 14px; text-align: center;">X<%= cartItem.productQty %></a></td>
                                                         <td><span style="font-size: 14px; text-align: center;">₹<%= cartItem.totalCostPerProduct %></span></td>
                                                         <!-- <td><button class="btn btn-danger" onclick="cancelProduct('<%= cartItem.productId._id %>','<%= orderData._id %>',this)">Cancel</button></td> -->
-                                                        <td>
+                                                        <!-- <td>
                                                             <button id="cancel-button-<%= cartItem.productId._id %>" class="btn btn-danger"
                                                                     <% if (cartItem.isCancelled) { %> disabled <% } %>
                                                                     onclick="cancelProduct('<%= cartItem.productId._id %>', '<%= orderData._id %>', this)">
                                                                 <%= cartItem.isCancelled ? "Cancelled" : "Cancel" %>
+                                                                
                                                             </button>
+                                                        </td> -->
+                                                        <td>
+                                                            <% if (cartItem.isCancelled) { %>
+                                                                <button class="btn btn-danger" disabled>Cancelled</button>
+                                                            <% } else if (cartItem.isReturned) { %>
+                                                                    <button class="btn btn-secondary" disabled>Returned</button>
+                                                            <% } else if (orderData.orderStatus === 'Delivered') { %>
+                                                                <button class="btn btn-primary" onclick="returnProduct('<%= cartItem.productId._id %>', '<%= orderData._id %>', this)">
+                                                                    Return
+                                                                </button>
+                                                               
+                                                            <% } else { %>
+                                                                <button class="btn btn-danger" onclick="cancelProduct('<%= cartItem.productId._id %>', '<%= orderData._id %>', this)">
+                                                                    Cancel
+                                                                </button>
+                                                            <% } %>
                                                         </td>
+                                                        
                                                     </tr>
                                                 <% }); %>
                                                 <tr class="cartTotalTr blank">
@@ -174,9 +192,13 @@
                                                     <td colspan="3"><span>Free</span></td>
                                                 </tr>
                                                 <tr class="cartTotalTr">
-                                                    <td colspan="2">GrandTotal</td>
+                                                    <td colspan="2">Discount</td>
+                                                    <td colspan="3"><span>₹<%= orderData.discountAmount %></span></td>
+                                                </tr>
+                                                <tr class="cartTotalTr">
+                                                    <td colspan="2">Grand Total</td>
                                                     <td colspan="3"><span class="price" id="grandTotalAmount">₹<%= orderData.cartData.reduce((total, item) => {
-                                                        return !item.isCancelled ? total + item.totalCostPerProduct : total;
+                                                        return !item.isCancelled ? (total + item.totalCostPerProduct) - orderData.discountAmount : total - orderData.discountAmount;
                                                     }, 0) %></span></td>
                                                 </tr>
                                                 
@@ -325,6 +347,84 @@ async function cancelProduct(productId,orderId,btnElement){
             console.error('Error:', error);
             alert("There was an error cancelling your product.");
         });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// async function returnProduct(productId, orderId, btnElement) {
+//     console.log("Returning product", productId, "from order", orderId);
+
+//     await fetch(`/order/returnProduct/${productId}/${orderId}`, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.success) {
+//             // Update UI to show refund details and disable the button
+//             document.getElementById('totalAmount').textContent = `₹${data.newTotalAmount}`;
+//             document.getElementById('grandTotalAmount').textContent = `₹${data.newGrandTotal}`;
+//             alert("Your product has been returned and refunded.");
+//             location.reload();
+//         } else {
+//             alert("There was an issue processing your return.");
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//         alert("There was an error processing your return.");
+//     });
+// }
+
+
+async function returnProduct(productId, orderId, btnElement) {
+    console.log("Returning product", productId, "from order", orderId);
+
+    try {
+        // Call the backend API to return the product
+        const response = await fetch(`/order/returnProduct/${productId}/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        // Parse the response
+        const data = await response.json();
+
+        // Check if the response was successful
+        if (data.success) {
+            // Update UI to show refund details
+            document.getElementById('totalAmount').textContent = `₹${data.newTotalAmount}`;
+            document.getElementById('grandTotalAmount').textContent = `₹${data.newGrandTotal}`;
+
+            // Disable the return button and update it
+            btnElement.textContent = 'Returned';
+            btnElement.classList.remove('btn-primary');
+            btnElement.classList.add('btn-secondary');
+            btnElement.disabled = true;
+
+            // Alert the user
+            alert("Your product has been returned and refunded.");
+        } else {
+            alert("There was an issue processing your return.");
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert("There was an error processing your return.");
+    }
 }
 
     </script>
