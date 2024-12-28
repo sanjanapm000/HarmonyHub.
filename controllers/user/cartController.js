@@ -585,6 +585,10 @@ const processOrder = async (req, res) => {
                     return res.status(400).send(`Product ${item.productId.productName} is currently not available.`);
                 }
                 if (item.productId.isBlocked===true) {
+                    let orderId = req.session.currentOrder._id;
+                    await Order.findByIdAndUpdate(orderId,{
+                        paymentType: 'Pending',
+                    })
                     return res.status(400).json({success:false,message:"One or more products are blocked"});
                 }
                 if (item.productId.quantity < item.productQty) {
