@@ -166,7 +166,8 @@ const userProfile = async (req,res)=>{
             .limit(limit);
          
         const totalPages = Math.ceil(totalOrders / limit);
-        
+
+      
         const totalReferralEarnings = userData.walletHistory
         .filter(transaction => transaction.description === 'Referral Bonus')
         .reduce((total, transaction) => total + transaction.amount, 0);
@@ -178,7 +179,8 @@ const userProfile = async (req,res)=>{
             orders,
             currentPage: page,  
             totalPages: totalPages, 
-            totalReferralEarnings 
+            totalReferralEarnings,
+          
 
         })
     } catch (error) {

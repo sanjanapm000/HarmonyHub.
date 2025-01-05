@@ -105,7 +105,8 @@
                                    <div class="row gx-2">
                                        <div class="col-sm-6 mb-3">
                                            <label class="form-label">Category</label>
-                                           <select class="form-select border" style="width: 150px;" name="category">
+                                           <select class="form-select border" style="width: 150px;" name="category" id="categorySelect">
+                                            <option value="" disabled selected>Choose the category</option>
                                                <%for(let i=0;i<cat.length;i++){%>
 
 
@@ -324,6 +325,11 @@ function validateForm() {
     const image3 = document.getElementById('input3');
     const image4 = document.getElementById('input4');
 
+
+    const categorySelect = document.getElementById('categorySelect');
+    const categoryError = document.getElementById('category-error');
+   
+
 console.log("images",image1.files,image2.files,image3.files,image4.files)
 
 
@@ -370,8 +376,13 @@ console.log("images",image1.files,image2.files,image3.files,image4.files)
         isValid = false;
     }
 
-   
-
+    if (!categorySelect.value) {
+        displayErrorMessage('category-error', 'Please select a category.');
+        isValid = false;
+    } else {
+        categoryError.innerText = '';
+    }
+    
     
 
     if((image1.files.length + image2.files.length + image3.files.length + image4.files.length) <= 2){

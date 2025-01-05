@@ -32,8 +32,8 @@ const createCoupon = async (req,res)=>{
     try {
         const data ={
             couponName:req.body.couponName,
-            startDate: new Date(req.body.startDate + "T00:00:00"),
-            endDate:new Date(req.body.endDate + "T00:00:00"),
+            startDate: new Date(req.body.startDate + "T00:00:00Z"),
+            endDate:new Date(req.body.endDate + "T00:00:00Z"),
             offerPrice:parseInt(req.body.offerPrice),
             minimumPrice:parseInt(req.body.minimumPrice),
         }
@@ -80,7 +80,7 @@ const updateCoupon = async (req,res)=>{
                     $set:{
                         name:req.body.couponName,
                         createdOn:startDate,
-                        expiredOn:endDate,
+                        expireOn:endDate,
                         offerPrice:parseInt(req.body.offerPrice),
                         minimumPrice:parseInt(req.body.minimumPrice)
                     }

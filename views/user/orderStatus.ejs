@@ -207,12 +207,13 @@
                                             <% } %>
                                         </tbody>
                                     </table>
-                    
+                    <% if (orderData.orderStatus === 'Delivered') { %>
                                     <div class="col-sm-12">
                                         <div class="btn btn-success">
                                             <a href="/profile/downloadInvoice/<%= orderData._id %>" style="color: white;">Download Invoice</a>
                                         </div>
                                     </div>
+                                    <% } %>
                                 </div>
                             </div>
                         </div>
