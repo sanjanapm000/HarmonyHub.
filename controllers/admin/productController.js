@@ -264,7 +264,8 @@ const getEditProduct = async (req, res) => {
             product: product,
             cat: category,
             listedCategories: listedCategories,
-            
+            existingImages: product.productImg,
+
         });
     } catch (error) {
         console.error(error);

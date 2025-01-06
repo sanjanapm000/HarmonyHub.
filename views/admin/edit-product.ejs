@@ -42,7 +42,7 @@
 
                     <div class="card-body">
                         <form method="post" action="/admin/editProduct/<%=product._id%>" enctype="multipart/form-data"
-                            onsubmit="return validateForm()">
+                            >
                             <div class="mb-4">
                                 <label for="product_name" class="form-label">Product Name</label>
                                 <input type="text" name="productName" value="<%=product.productName%>"
@@ -265,13 +265,10 @@
     <%- include("../../views/partials/admin/footer") %>
 
         <script>
+            let totalImages = Number('<%= existingImages.length %>');
 
 
-            function validateAndSubmit() {
-                if (validateForm()) {
-                    document.forms[0].submit();
-                }
-            }
+            
 
             function editImage(imageName, productId, index) {
     // Show the cropping container
@@ -334,16 +331,15 @@
                 clearErrorMessages();
                 const name = document.getElementsByName('productName')[0].value;
                 const description = document.getElementsByName('descriptionData')[0].value;
-                const brand = document.getElementsByName('brand')[0].value;
                 const price = document.getElementsByName('regularPrice')[0].value;
                 const saleprice = document.getElementsByName('salePrice')[0].value;
-                const color = document.getElementsByName('color')[0].value;
                 const category = document.getElementsByName('category')[0].value;
                 const images = document.getElementById('input1')
                 const quantity = document.getElementsByName('quantity')
                 imageDatas = document.getElementById("imageDatas")?.value;
                 let isValid = true;
                 if (name.trim() === "") {
+                    console.log("inside name")
                     displayErrorMessage('productName-error', 'Please enter a product name.');
                     isValid = false;
                 }
@@ -371,12 +367,16 @@
                     isValid = false;
                 }
 
-                if (color.trim() === "") {
-                    displayErrorMessage('color-error', 'Please enter a color.');
-                    isValid = false;
+               
+                for (let i = 1; i <= 4; i++) {
+                    const input = document.getElementById(`input${i}`);
+                    if (input && input.files) {
+                        totalImages += input.files.length;
+                    }
                 }
-                if (!imageDatas && images.files.length === 0) {
-                    displayErrorMessage("images-error", 'Please select an image.');
+
+                if (totalImages < 3) {
+                    displayErrorMessage('images-error', 'Please upload at least three images.');
                     isValid = false;
                 }
                 return isValid;
@@ -538,25 +538,7 @@
 
            
                
-                // function deleteSingleImage(imageId, productId) {
-                //     console.log('Delete button clicked');
-                //     console.log('Image ID:', imageId, 'Product ID:', productId);
-                    
-                //     $.ajax({
-                //         url: "/admin/deleteImage",
-                //         method: 'post',
-                //         data: { imageNameToServer: imageId, productIdToServer: productId },
-                //         success: ((response) => {
-                //             if (response.status === true) {
-                //                 window.location.reload();
-                //             } else {
-                //                 // Display an error message
-                //                 alert(response.message || 'Failed to delete image.');
-                //             }
-                //         })
-                //     })
-                    
-                // }
+              
            
                 function deleteSingleImage(imageId, productId) {
                     const confirmation = window.confirm('Are you sure you want to delete this image?');
@@ -592,6 +574,20 @@
         console.log('Image delete canceled');
     }
 }
+
+
+function validateAndSubmit(event) {
+                event.preventDefault();  // Prevent form submission if validation fails
+                if (validateForm()) {
+                    document.forms[0].submit(); // If validation passes, submit the form
+                }
+            }
+
+            // Bind the validateAndSubmit function to form submission
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.querySelector('form');
+                form.addEventListener('submit', validateAndSubmit); // Bind to form submit
+            });
 
 
         </script>
