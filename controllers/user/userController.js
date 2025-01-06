@@ -7,7 +7,8 @@ const mongoose = require("mongoose")
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 const Review = require('../../models/reviewSchema');
-const Wallet = require('../../models/walletSchema')
+const Wallet = require('../../models/walletSchema');
+const STATUS_CODES = require("../../constants/statusCodes");
 
 
 
@@ -41,7 +42,7 @@ const submitReview = async (req, res) => {
 
       
         if (rating < 1 || rating > 5) {
-            return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Rating must be between 1 and 5." });
         }
 
         // Create a new review
@@ -62,7 +63,7 @@ const submitReview = async (req, res) => {
         return res.json({ success: true, message: "Review submitted successfully!" });
     } catch (error) {
         console.error("Error submitting review:", error);
-        res.status(500).json({ success: false, message: "Error submitting review. Please try again later." });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error submitting review. Please try again later." });
     }
 };
 
@@ -77,7 +78,7 @@ const getProductReviews = async (req, res) => {
         return res.json({ success: true, reviews });
     } catch (error) {
         console.error("Error fetching reviews:", error);
-        res.status(500).json({ success: false, message: "Error fetching reviews. Please try again later." });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error fetching reviews. Please try again later." });
     }
 };
 
@@ -88,7 +89,7 @@ const loadSignup = async (req, res) => {
         return res.render('signup');
     } catch (error) {
         console.log("Signup page not loading", error);
-        res.status(500).send('Server Error');
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Server Error');
     }
 }
 
@@ -219,7 +220,7 @@ const verifyOTP = async (req, res) => {
 
         if (!req.session.userOtp) {
             console.log("OTP session data not found.");
-            return res.status(400).json({ success: false, message: "OTP session data not found." });
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "OTP session data not found." });
         }
 
         console.log("Session OTP:", req.session.userOtp);
@@ -296,12 +297,12 @@ const verifyOTP = async (req, res) => {
             return res.json({ success: true, redirectUrl: '/login' });
         } else {
             console.log("Invalid OTP entered.");
-            return res.status(400).json({ success: false, message: "Invalid OTP, Please try again!" })
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Invalid OTP, Please try again!" })
         }
 
     } catch (error) {
         console.error("Error in verifying OTP", error);
-        res.status(500).json({ success: false, message: "An error occured" })
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: "An error occured" })
     }
 }
 
@@ -309,7 +310,7 @@ const resendOTP = async (req, res) => {
     try {
         const { email } = req.session.userData;
         if (!email) {
-            return res.status(400).json({ success: false, message: "Email not found in session" })
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Email not found in session" })
         }
         const otp = generateOtp();
         req.session.userOtp = otp;
@@ -317,13 +318,13 @@ const resendOTP = async (req, res) => {
         const emailSent = await sendVerificationEmail(email, otp);
         if (emailSent) {
             console.log("Resend otp", otp);
-            res.status(200).json({ success: true, message: "OTP resent successfully" })
+            res.status(STATUS_CODES.OK).json({ success: true, message: "OTP resent successfully" })
         } else {
-            res.status(500).json({ success: false, message: "Failed to resend OTP, Please try again " })
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: "Failed to resend OTP, Please try again " })
         }
     } catch (error) {
         console.error("Error in resending OTP", error);
-        res.status(500).json({ success: false, message: "Internal Server Error" })
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal Server Error" })
     }
 }
 
@@ -366,7 +367,7 @@ const loadHomePage = async (req, res) => {
         console.log("USERWISHLIST:",userWishlist);
     } catch (error) {
         console.log('Home page not loading', error);
-        res.status(500).send('Server Error')
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Server Error')
     }
 }
 
@@ -394,7 +395,7 @@ const getProductDetails = async (req, res) => {
         const selectedProduct = await Product.findById(productId).populate('category');
 
         if (!selectedProduct) {
-            return res.status(404).send('Product not found');
+            return res.status(STATUS_CODES.NOT_FOUND).send('Product not found');
         }
 
         const product = await Product.findById(productId)
@@ -544,7 +545,7 @@ const getAllProducts = async (req, res) => {
 
     } catch (error) {
         console.error("Error in getAllProducts:", error);
-        res.status(500).send("Error fetching products");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Error fetching products");
     }
 };
 
@@ -628,7 +629,7 @@ const filterProduct = async (req, res) => {
 
     } catch (error) {
         console.error("Error in filterProduct:", error);
-        res.status(500).send("Error filtering products");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Error filtering products");
     }
 };
 

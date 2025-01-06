@@ -1,7 +1,8 @@
  //categoryController.js
  const Category = require("../../models/categorySchema");
  const Product = require("../../models/productSchema");
- const Order = require("../../models/orderSchema")
+ const Order = require("../../models/orderSchema");
+ const STATUS_CODES = require("../../constants/statusCodes");
 
 
 
@@ -36,22 +37,22 @@ res.render("category",{
 const addCategory = async(req,res)=>{
     const {name,description} = req.body;
     if (!name || !description) {
-        return res.status(400).json({ error: "Name and description are required" });
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ error: "Name and description are required" });
     }
     try{
          const existingCategory = await Category.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
          if(existingCategory){
-            return res.status(400).json({error:"Category already exists"})
+            return res.status(STATUS_CODES.BAD_REQUEST).json({error:"Category already exists"})
          }
          const newCategory = new Category({
             name,
             description,
          })
          await newCategory.save();
-         return res.status(201).json({message:"Category added successfully"})
+         return res.status(STATUS_CODES.CREATED).json({message:"Category added successfully"})
     }catch(error){
         console.error("Error adding category:", error);
-        return res.status(500).json({error:"Internal server error"})
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({error:"Internal server error"})
     }
 }
 
@@ -61,7 +62,7 @@ const addCategoryOffer = async (req,res)=>{
       const categoryId = req.body.categoryId;
       const category = await Category.findById(categoryId);
       if(!category){
-        return res.status(404).json({status:false, message:"Category not found"})
+        return res.status(STATUS_CODES.NOT_FOUND).json({status:false, message:"Category not found"})
       }
       const products = await Product.find({category:category._id});
       const hasProductOffer = products.some((product)=>product.productOffer > percentage);
@@ -77,7 +78,7 @@ const addCategoryOffer = async (req,res)=>{
       }
       res.json({status:true});
     }catch(error){
-         res.status(500).json({status:false,message:"Internal server error"})
+         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({status:false,message:"Internal server error"})
     }
 }
 
@@ -87,7 +88,7 @@ const removeCategoryOffer= async(req,res)=>{
         const category = await Category.findById(categoryId);
 
         if(!category){
-            return res.status(404).json({status:false,message:"Category not found"});
+            return res.status(STATUS_CODES.NOT_FOUND).json({status:false,message:"Category not found"});
         }
 
         const percentage = category.categoryOffer;
@@ -104,7 +105,7 @@ const removeCategoryOffer= async(req,res)=>{
         await category.save();
         res.json({status:true});
     } catch (error) {
-        res.status(500).json({status:false,message:"Internal server error"})
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({status:false,message:"Internal server error"})
     }
 };
 
@@ -168,10 +169,10 @@ const editCategory= async(req,res)=>{
         if (updateCategory) {
             res.redirect("/admin/category");
         } else {
-            res.status(404).json({ error: "Category not found" });
+            res.status(STATUS_CODES.NOT_FOUND).json({ error: "Category not found" });
         }
     } catch (error) {
-        res.status(500).json({ error: "Internal server error" });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ error: "Internal server error" });
     }
 }
 
@@ -188,7 +189,7 @@ const checkCategoryName = async (req, res) => {
         return res.json({ exists: false });
     } catch (error) {
         console.error('Error checking category name:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ error: 'Internal server error' });
     }
 };
 

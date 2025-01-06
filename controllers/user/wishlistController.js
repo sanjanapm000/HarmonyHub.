@@ -1,11 +1,13 @@
 const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema');
+const STATUS_CODES = require('../../constants/statusCodes');
 
 const loadWishlist = async (req, res) => {
     try {
         const userId = req.session.user;
         const user = await User.findById(userId);
         const products = await Product.find({ _id: { $in: user.wishlist } }).populate('category');
+        
 
         res.render('wishlist', {
             user,
@@ -36,7 +38,7 @@ const toggleWishlist = async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ status: false, message: 'Server error' });
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ status: false, message: 'Server error' });
     }
 };
 
@@ -51,7 +53,7 @@ const removeProduct = async (req, res) => {
         return res.redirect('/wishlist');
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ status: false, message: 'Server error' });
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ status: false, message: 'Server error' });
     }
 };
 

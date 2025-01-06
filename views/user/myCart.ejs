@@ -341,6 +341,14 @@
             });
         }
 
+
+        if(currentQuantity >= 5){
+            return Swal.fire({
+                icon: "info",
+                title: "Maximum Quantity",
+                text: "You cannot increase the quantity beyond 5.",
+            });
+        }
         // Increase the quantity
         let newQuantity = currentQuantity + 1;
         productQuantityElement.innerText = newQuantity;

@@ -3,7 +3,7 @@ const User = require("../../models/userSchema.js");
 const Wallet = require("../../models/walletSchema.js");
 const Address = require('../../models/addressSchema.js');
 const Product = require("../../models/productSchema.js")
-
+const STATUS_CODES = require("../../constants/statusCodes.js");
 
 
 const viewOrderStatus = async (req, res) => {
@@ -14,7 +14,7 @@ const viewOrderStatus = async (req, res) => {
     const order = await Order.findById(orderId).populate("userId").populate("addressChosen._Id");
 
     if (!order) {
-      return res.status(404).send("Order not found");
+      return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
     }
 
     // Prepare order data to pass to the view
@@ -43,7 +43,7 @@ const viewOrderStatus = async (req, res) => {
       isDelivered,addressData,selectedAddress,orderId});
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server error while fetching order details");
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error while fetching order details");
   }
 };
 
@@ -178,7 +178,7 @@ const changeStatusReturn = async (req, res) => {
     res.redirect("/admin/orderManagement");
   } catch (error) {
     console.error('Error processing return:', error);
-    res.status(500).send('Server Error');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Server Error');
   }
 };
 

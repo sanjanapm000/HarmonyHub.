@@ -105,6 +105,24 @@
         border: 2px solid black;
         padding: 12px;
     }
+
+    .pagination-button {
+        padding: 8px 16px;
+        margin: 5px;
+        cursor: pointer;
+        background-color: #f2f2f2;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .pagination-button.active {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .pagination-button:hover {
+        background-color: #ddd;
+    }
 </style>
 
 <h3 class="text-center"><strong>Sales Report</strong></h3>
@@ -131,6 +149,12 @@
 </div>
 
 <div id="reportContainer"></div>
+<div id="paginationControls" class="text-center"></div>
+
+<div id="downloadButtons" class="download-buttons text-center" style="display: none;">
+    <button onclick="downloadReport('pdf')">Download PDF</button>
+    <button onclick="downloadReport('excel')">Download Excel</button>
+</div>
 
 <%- include("../../views/partials/admin/footer") %>
 
@@ -141,115 +165,115 @@
         customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
     });
 
-    // Handle report form submission
-    document.getElementById('reportForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const formData = new FormData(this);
-        
-        // Remove date range if not using custom report type
-        if (formData.get('reportType') !== 'custom') {
-            formData.delete('startDate');
-            formData.delete('endDate');
-        }
+    let currentPage = 1;
+    const itemsPerPage = 5; // Adjust as needed
 
-        // Convert FormData to JSON object
-        const data = Object.fromEntries(formData);
+    async function fetchReport(page = 1) {
+        const formData = new FormData(document.getElementById('reportForm'));
+        formData.set('page', page);
+        formData.set('itemsPerPage', itemsPerPage);
 
         const response = await fetch('/admin/generate-sales-report', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
+            body: JSON.stringify(Object.fromEntries(formData))
         });
 
         if (response.ok) {
             const reportData = await response.json();
-            console.log("reportData",reportData);
-            
-
-            // Display the summary of the report
-            const summaryHTML = `
-            <div  class="megaborder">
-
-            <div class="report-heading">Sales Report</div>
-                <div class="report-summary">
-                    <p><strong>Total Sales Count:</strong> ${reportData.totalSalesCount}</p>
-                    <p><strong>Total Order Amount:</strong> ${reportData.totalOrderAmount}</p>
-                    <p><strong>Total Discount:</strong> ${reportData.totalDiscount}</p>
-                    
-                </div>
-            `;
-
-            // Display the order details section
-            const ordersHTML = `
-                <div class="order-details">
-                    <h4 class="h4order">Order Details:</h4>
-                    ${reportData.orders.map(order => `
-                        <div class="order-item">
-                            <p><strong>Order ID:</strong> ${order._id}</p>
-                            <p><strong>Order Date:</strong> ${new Date(order.orderDate).toLocaleString()}</p>
-                            <p><strong>Grand Total:</strong> ${order.grandTotalCost}</p>
-                            <p><strong>Discount:</strong> ${order.discountAmount}</p>
-                           
-                        </div>
-                    `).join('')}
-                </div>
-                </div>
-            `;
-
-
-            const dynamicBorderHTML = `
-                <div class="report-container">
-                    ${summaryHTML}
-                    ${ordersHTML}
-                </div>
-            `;
-
-            // Append the generated content to the container
-            document.getElementById('reportContainer').innerHTML = summaryHTML + ordersHTML;
-
-            // Display download buttons
-            const downloadButtonsHTML = `
-                <div class="download-buttons">
-                    <button onclick="downloadReport('pdf')">Download as PDF</button>
-                    <button onclick="downloadReport('excel')">Download as Excel</button>
-                </div>
-            `;
-            document.getElementById('reportContainer').innerHTML += downloadButtonsHTML;
-
+            displayReport(reportData);
+            setupPagination(reportData.totalPages, page);
+            document.getElementById('downloadButtons').style.display = 'block'; 
         } else {
-            console.error('Error generating sales report:', error);
             alert('Error generating report');
         }
+    }
+
+    function displayReport(reportData) {
+        const reportContainer = document.getElementById('reportContainer');
+        reportContainer.innerHTML = ''; // Clear previous report
+
+        // Create a summary section
+        const summaryHTML = `
+            <div class="report-summary">
+                <p>Total Sales Count: ${reportData.totalSalesCount}</p>
+                <p>Total Order Amount: ${reportData.totalOrderAmount.toFixed(2)}</p>
+                <p>Total Discount: ${reportData.totalDiscount.toFixed(2)}</p>
+            </div>
+        `;
+        reportContainer.innerHTML += summaryHTML;
+
+        // Create a table for order details
+        let tableHTML = `
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Order Date</th>
+                        <th>Grand Total</th>
+                        <th>Discount</th>
+                       
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        reportData.orders.forEach(order => {
+            tableHTML += `
+                <tr>
+                    <td>${order._id}</td>
+                    <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                    <td>${order.grandTotalCost.toFixed(2)}</td>
+                    <td>${order.discountAmount.toFixed(2)}</td>
+                    
+                </tr>
+            `;
+        });
+
+        tableHTML += '</tbody></table>';
+        reportContainer.innerHTML += tableHTML;
+    }
+
+    function setupPagination(totalPages, currentPage) {
+        let paginationHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHTML += `<button onclick="fetchReport(${i})" class="pagination-button ${i === currentPage ? 'active' : ''}">${i}</button>`;
+        }
+        document.getElementById('paginationControls').innerHTML = paginationHTML;
+    }
+
+    document.getElementById('reportForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        fetchReport(1);
     });
 
     // Download the report as PDF or Excel
     function downloadReport(format) {
-    const formData = new FormData(document.getElementById('reportForm'));
-    formData.set('downloadFormat', format); // Set download format dynamically
+        const formData = new FormData(document.getElementById('reportForm'));
+        formData.set('downloadFormat', format); // Set download format dynamically
 
-    fetch('/admin/generate-sales-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(formData))
-    }).then(response => {
-        if (response.ok) {
-            const contentDisposition = response.headers.get('Content-Disposition');
-            const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'sales_report';
+        fetch('/admin/generate-sales-report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+        }).then(response => {
+            if (response.ok) {
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/"/g, '') : 'sales_report';
 
-            response.blob().then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            });
-        } else {
-            alert('Error generating the report file.');
-        }
-    });
-}
-
+                response.blob().then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                });
+            } else {
+                alert('Error generating the report file.');
+            }
+        });
+    }
 
 </script>

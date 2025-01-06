@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 require("dotenv").config();
 const session = require("express-session");
 const {generatevoice} = require('../../utils/invoiceUtils');
+const STATUS_CODES = require("../../constants/statusCodes");
 
 function generateOtp(){
     const digits="1234567890";
@@ -98,7 +99,7 @@ const verifyForgotPassOtp = async(req,res)=>{
             res.json({success:false,message:"OTP doesn't matches"});
         }
     } catch (error) {
-        res.status(500).json({success:false,message:"An error occured"})
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({success:false,message:"An error occured"})
     }
 }
 
@@ -119,12 +120,12 @@ const resendOtp = async(req,res)=>{
         const emailSent = await sendVerificationEmail(email,otp);
         if(emailSent){
             console.log("Resent OTP:",otp);
-            res.status(200).json({success:true,message:"Resend OTP successful"})
+            res.status(STATUS_CODES.OK).json({success:true,message:"Resend OTP successful"})
         }
         
     } catch (error) {
         console.error("Error in resend OTP",error);
-        res.status(500).json({success:false,message:"Internal server error"});
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({success:false,message:"Internal server error"});
     }
 }
 
@@ -214,13 +215,13 @@ const updateProfile = async(req,res)=>{
     );
      
     if(!updatedUser){
-        return res.status(404).send('User not found')
+        return res.status(STATUS_CODES.NOT_FOUND).send('User not found')
     }
      
     res.redirect('/userProfile');
    } catch (error) {
      console.error(error);
-     res.status(500).send('Error updating profile')
+     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error updating profile')
    }
     };
 
@@ -324,7 +325,7 @@ const deleteAddress = async (req,res)=>{
      const addressId = req.query.id;
      const findAddress = await Address.findOne({"address._id":addressId});
      if(!findAddress){
-        return res.status(404).send("Address not found")
+        return res.status(STATUS_CODES.NOT_FOUND).send("Address not found")
      }
 
      await Address.updateOne({
@@ -347,16 +348,7 @@ const deleteAddress = async (req,res)=>{
     }
 }
 
-// const invoiceDownload = async(req,res)=>{
-// try {
-//      const orderData = await Order.findOne({_id:req.params.id}).populate('addressChosen._Id');
-//     const stream = res.writeHead(200,{"Content-Type":"application/pdf","Content-Disposition":"attachment;filename=invoice.pdf"});
-//     generatevoice((chunk)=> stream.write(chunk),()=> stream.end(),orderData);
-// } catch (error) {
-//     console.error(error);
-    
-// }
-// }
+
 const invoiceDownload = async(req,res)=>{
     try {
         const orderData = await Order.findOne({_id:req.params.id})
@@ -370,7 +362,7 @@ const invoiceDownload = async(req,res)=>{
             });
 
         if (!orderData) {
-            return res.status(404).send('Order not found');
+            return res.status(STATUS_CODES.NOT_REQUEST).send('Order not found');
         }
 
         const stream = res.writeHead(200, {
@@ -386,7 +378,7 @@ const invoiceDownload = async(req,res)=>{
 
     } catch (error) {
         console.error('Invoice download error:', error);
-        res.status(500).send('Error generating invoice');
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error generating invoice');
     }
 };
 

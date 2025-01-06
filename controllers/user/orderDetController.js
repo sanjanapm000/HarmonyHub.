@@ -5,6 +5,7 @@ const Wallet = require("../../models/walletSchema");
 const Product = require("../../models/productSchema")
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const STATUS_CODES = require("../../constants/statusCodes");
 
 
 const getUserOrders = async (req, res) => {
@@ -24,63 +25,11 @@ const getUserOrders = async (req, res) => {
         res.redirect('/order');
     } catch (error) {
         console.error("Error fetching orders:", error);
-        res.status(500).send("An error occurred while fetching your orders.");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("An error occurred while fetching your orders.");
     }
 };
 
 
-
-// const cancelOrder = async (req, res) => {
-//     try {
-//         const orderId = req.params.id;
-        
-//         const order = await Order.findOneAndUpdate(
-//             { _id: orderId },
-//             { $set: { orderStatus: 'Cancelled' } },
-//             { new: true }
-//         );
-//         const orderData = await Order.findById(orderId);
-//         console.log("orderData from cancel order",orderData)
-//         if (!order) {
-//             return res.status(404).send('Order not found');
-//         }
-
-//         const user = await User.findById(order.userId);
-//         const refundAmount = order.grandTotalCost;
-//         if (orderData.paymentType !== 'Pending') {
-//             user.wallet += refundAmount;
-
-//             const transaction = new Wallet({
-//                 userId: order.userId,
-//                 amount: refundAmount,
-//                 status: 'Refund',
-//                 description: `Refund for canceled order #${order.orderNumber}`
-//             });
-
-//             await transaction.save();
-//             user.walletHistory.push(transaction._id);
-//             await user.save();
-//         }
-
-        
-//         for (const item of order.cartData) {
-//             const product = await Product.findById(item.productId._id);
-
-//             if (product) {
-//                 // Increase the stock by the quantity of the product in the canceled order
-//                 product.quantity += item.productQty;
-//                 await product.save();
-//             }
-//         }
-
-//         console.log('Order cancelled and refund processed');
-
-//         res.redirect('/order?page=1');
-//     } catch (error) {
-//         console.error('Error cancelling order:', error);
-//         res.status(500).send('Something went wrong');
-//     }
-// };
 
 
 
@@ -95,7 +44,7 @@ const cancelOrder = async (req, res) => {
         const orderData = await Order.findById(orderId);
         console.log("orderData from cancel order",orderData)
         if (!order) {
-            return res.status(404).send('Order not found');
+            return res.status(STATUS_CODES.NOT_FOUND).send('Order not found');
         }
 
         const user = await User.findById(order.userId);
@@ -177,67 +126,7 @@ const cancelOrder = async (req, res) => {
 
 
 
-// orderStatus
-// const orderStatusPage = async (req, res) => {
-//   try {
-//     const userId = req.session.user._id;
-//     console.log("userId",userId);
 
-//     if (!req.session.user || !req.session.user._id) {
-//       return res.redirect('/login');
-//     }
-//     const orderId = req.params.id;
-//     console.log("orderid",orderId);
-//     const order = await Order.findOne({ _id: orderId });
-
-
-//     const orderData = await Order.findById(orderId).populate('products.productId').populate('addressChosen');
-
-// console.log("my orderdata:",orderData);
-
-
-
-//     if (!orderData) {
-//         return res.status(404).send("Order not found");
-//     }
-
-//     const isCancelled = orderData.orderStatus === 'Cancelled';
-//     const isDelivered = orderData.orderStatus === 'Delivered';
-
-
-// const userAddress = await Address.findById(userId);
-// console.log("userAddress",userAddress);
-
-
-
-//     // const userAddresses = await Address.findOne({ userId });
-//     //     const orderObj = order.toObject();
-
-//     //     if (userAddresses && userAddresses.address) {
-//     //         orderObj.deliveryAddress = userAddresses.address.find(
-//     //             addr => addr._id.toString() === Order.address.toString()
-//     //         );
-//     //     }
-
-//         // res.render('user/order-indetail', { 
-//         //     order: orderObj, 
-//         //     session: req.session,
-//         //     errorMessage: null
-//         // });
-
-//     res.render('orderStatus', {
-//         // orderObj,
-//         orderData,
-//         isCancelled,
-//         isDelivered,
-//         user:req.session.user,
-
-//     });
-// } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Error retrieving order details");
-// }
-// }
 
 const orderStatusPage = async (req, res) => {
     try {
@@ -271,7 +160,7 @@ const orderStatusPage = async (req, res) => {
 
         // Check if the order exists
         if (!orderData) {
-            return res.status(404).send("Order not found");
+            return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
         }
 
         // Determine the order status
@@ -290,7 +179,7 @@ const orderStatusPage = async (req, res) => {
         });
     } catch (error) {
         console.error("Error retrieving order details:", error);
-        res.status(500).send("Error retrieving order details");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Error retrieving order details");
     }
 };
 
@@ -366,14 +255,14 @@ const returnOrder = async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId).populate('userId');
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'Order not found' });
         }
 
         const refundAmount = order.grandTotalCost - order.discountAmount;
 
         const user = await User.findById(order.userId._id);
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(STATUS_CODES.NOT_FOUND).json({ message: 'User not found' });
         }
 
         if (user.wallet === undefined) {
@@ -405,117 +294,11 @@ const returnOrder = async (req, res) => {
         res.json({ success: true, message: 'Order has been returned successfully' });
     } catch (error) {
         console.error('Error processing return:', error);
-        res.status(500).json({ message: 'Server Error' });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: 'Server Error' });
     }
 };
 
-// const cancelProduct = async (req, res) => {
-//     try {
-//         {
-//             const productId = req.params.id;
-//             const orderId = req.params.orderId;
-//             console.log("Cancelling product:", productId, "from order:", orderId);
 
-//             const order = await Order.aggregate([
-//                 { $match: { _id: new ObjectId(orderId) } }, // Match the specific order
-//                 { $unwind: "$cartData" }, // Unwind the cartData array to process each item individually
-//                 {
-//                     $lookup: {
-//                         from: "products", // Join with the products collection
-//                         localField: "cartData.productId._id", // Match the productId in cartData
-//                         foreignField: "_id", // The _id field in the products collection
-//                         as: "productDetails" // Name of the field where the product details will be stored
-//                     }
-//                 },
-//                 { $unwind: "$productDetails" }, // Unwind the productDetails array to extract product details
-//                 {
-//                     $project: { // Project the necessary fields from the order and product details
-//                         _id: 1,
-//                         userId: 1,
-//                         orderNumber: 1,
-//                         orderDate: 1,
-//                         paymentStatus: 1,
-//                         orderStatus: 1,
-//                         cartData: 1,
-//                         productDetails: 1
-//                     }
-//                 }
-//             ]);
-//             console.log("order from cancel", order)
-//             if (!order) {
-//                 return res.status(404).json({
-//                     success: false,
-//                     message: "Order not found"
-//                 });
-//             }
-
-//             // Find the specific product in cartData
-//             const cartItemIndex = order.cartData.findIndex(item =>
-//                 item.productId._id.toString() === productId
-//             );
-
-//             if (cartItemIndex === -1) {
-//                 return res.status(404).json({
-//                     success: false,
-//                     message: "Product not found in order"
-//                 });
-//             }
-
-//             // Get the cart item
-//             const cartItem = order.cartData[cartItemIndex];
-
-//             // Check if already cancelled
-//             if (cartItem.isCancelled) {
-//                 return res.status(400).json({
-//                     success: false,
-//                     message: "Product already cancelled"
-//                 });
-//             }
-
-//             // Mark the specific product as cancelled
-//             cartItem.isCancelled = true;
-//             order.cartData[cartItemIndex] = cartItem;
-
-//             // Update product quantity (return to stock)
-//             const product = await Product.findById(productId);
-//             if (product) {
-//                 product.quantity += cartItem.productQty;
-//                 await product.save();
-//             }
-
-//             // If payment was completed, process refund
-//             if (order.paymentStatus === 'Completed') {
-//                 const user = await User.findById(order.userId);
-//                 const refundAmount = cartItem.totalCostPerProduct;
-
-//                 if (user) {
-//                     // Initialize wallet if it doesn't exist
-//                     user.wallet = (user.wallet || 0) + refundAmount;
-
-//                     // Create wallet transaction if you have a Wallet model
-//                     if (typeof Wallet !== 'undefined') {
-//                         const transaction = new Wallet({
-//                             userId: order.userId,
-//                             amount: refundAmount,
-//                             status: 'Refund',
-//                             description: `Refund for cancelled product: ${product.productName}`
-//                         });
-//                         await transaction.save();
-
-//                         if (!user.walletHistory) {
-//                             user.walletHistory = [];
-//                         }
-//                         user.walletHistory.push(transaction._id);
-//                     }
-
-//                     await user.save();
-//                 }
-//             }
-//         }
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
 
 const cancelProduct = async (req, res) => {
     try {
@@ -549,7 +332,7 @@ const cancelProduct = async (req, res) => {
         );
 
         if (cartItemIndex === -1) {
-            return res.status(404).json({
+            return res.status(STATUS_CODES.NOT_FOUND).json({
                 success: false,
                 message: "Product not found in order"
             });
@@ -560,7 +343,7 @@ const cancelProduct = async (req, res) => {
 
         // Check if already cancelled
         if (cartItem.isCancelled) {
-            return res.status(400).json({
+            return res.status(STATUS_CODES.BAD_REQUEST).json({
                 success: false,
                 message: "Product already cancelled"
             });
@@ -631,7 +414,7 @@ const cancelProduct = async (req, res) => {
         // Save updated order
         await order.save();
 
-        return res.status(200).json({
+        return res.status(STATUS_CODES.OK).json({
             success: true,
             message: "Product successfully cancelled",
             product: cartItem,
@@ -641,14 +424,14 @@ const cancelProduct = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Internal server error"
         });
     }
 };
 
-// const returnProduct = async (req, res) => {
+
 //     try {
 //         const { productId, orderId } = req.params;
 
@@ -735,7 +518,7 @@ const returnProduct = async (req, res) => {
         // Fetch the order and populate cartData with the product details
         const order = await Order.findOne({ _id: orderId }).populate('cartData.productId');
         if (!order) {
-            return res.status(404).json({
+            return res.status(STATUS_CODES.NOT_FOUND).json({
                 success: false,
                 message: "Order not found"
             });
@@ -744,7 +527,7 @@ const returnProduct = async (req, res) => {
         // Find the specific product in cartData
         const cartItemIndex = order.cartData.findIndex(item => item.productId._id.toString() === productId);
         if (cartItemIndex === -1) {
-            return res.status(404).json({
+            return res.status(STATUS_CODES.NOT_FOUND).json({
                 success: false,
                 message: "Product not found in order"
             });
@@ -754,7 +537,7 @@ const returnProduct = async (req, res) => {
 
         // Check if the product has already been returned
         if (cartItem.isReturned) {
-            return res.status(400).json({
+            return res.status(STATUS_CODES.BAD_REQUEST).json({
                 success: false,
                 message: "Product already returned"
             });
@@ -798,7 +581,7 @@ const returnProduct = async (req, res) => {
 
 
         // Return updated data to the frontend
-        return res.status(200).json({
+        return res.status(STATUS_CODES.OK).json({
             success: true,
             message: "Product successfully returned and refunded",
             newTotalAmount: order.grandTotalCost,
@@ -808,7 +591,7 @@ const returnProduct = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Internal server error"
         });

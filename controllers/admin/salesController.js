@@ -3,13 +3,14 @@ const { generatePDF, generateExcel } = require('../../utils/reportUtils.js');
 const salesService = require('../../utils/saleService.js');
 const { jsPDF } = require("jspdf");
 require("jspdf-autotable");
+const STATUS_CODES = require("../../constants/statusCodes");
 
 
 
 
 
 const generateSalesReport = async (req, res) => {
-    const { reportType, startDate, endDate, downloadFormat } = req.body;
+    const { reportType, startDate, endDate, downloadFormat, page = 1, itemsPerPage = 10 } = req.body;
     console.log("req.body from salescontroller", req.body);
 
     try {
@@ -35,10 +36,11 @@ const generateSalesReport = async (req, res) => {
             query.orderDate = { $gte: yearStart };
         }
 
-        // Fetch orders based on the query
-        const orders = await Order.find(query);
-        console.log("orders",orders);
-        
+        // Fetch orders with pagination
+        const totalOrders = await Order.countDocuments(query);
+        const orders = await Order.find(query)
+            .skip((page - 1) * itemsPerPage)
+            .limit(itemsPerPage);
 
         // Calculate total sales count, total order amount, and total discount
         const totalSalesCount = orders.length;
@@ -53,6 +55,7 @@ const generateSalesReport = async (req, res) => {
             totalDiscount,
             totalCouponDeduction,
             orders,
+            totalPages: Math.ceil(totalOrders / itemsPerPage),
         };
 
         if (downloadFormat === 'pdf') {
@@ -77,7 +80,7 @@ const generateSalesReport = async (req, res) => {
         }
     } catch (error) {
         console.error('Error generating sales report:', error);
-        res.status(500).send('Error generating report');
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error generating report');
     }
 };
 
@@ -162,7 +165,7 @@ const generateLedger = async (req,res)=>{
         res.send(Buffer.from(pdfOutput));
     } catch (error) {
         console.error('Error generating PDF:', error);
-        res.status(500).send('Error generating PDF');
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error generating PDF');
     }
 };
 

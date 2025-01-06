@@ -6,6 +6,7 @@ const fsm = require("fs").promises;  // Use fs.promises for async file operation
 const path = require("path");
 const sharp = require("sharp");
 const { log } = require("console");
+const STATUS_CODES = require("../../constants/statusCodes"); 
 
 
 
@@ -56,7 +57,7 @@ const addProducts = async (req, res) => {
         });
 
         if (productExists) {
-            return res.status(400).json("Product already exists");
+            return res.status(STATUS_CODES.BAD_REQUEST).json("Product already exists");
         }
 
         const images = [];
@@ -78,7 +79,7 @@ const addProducts = async (req, res) => {
 
                 } catch (err) {
                     console.error("Error resizing or deleting image:", err);
-                    return res.status(500).json({ message: "Error processing images" });
+                    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Error processing images" });
                 }
             }
         }
@@ -127,7 +128,7 @@ const editProduct = async (req, res) => {
         });
 
         if (existingProduct) {
-            return res.status(400).json({ error: "Product already exists" });
+            return res.status(STATUS_CODE.BAD_REQUEST).json({ error: "Product already exists" });
         }
 
         const images = [];
@@ -172,7 +173,7 @@ const deleteSingleImage = async (req, res) => {
         const { imageNameToServer, productIdToServer } = req.body;
 
         if (!imageNameToServer || !productIdToServer) {
-            return res.status(400).json({ status: false, message: "Missing required parameters: imageName or productId" });
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ status: false, message: "Missing required parameters: imageName or productId" });
         }
         const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{productImg:imageNameToServer}});
 
@@ -193,7 +194,7 @@ const deleteSingleImage = async (req, res) => {
         res.send({status:true});
     } catch (error) {
         console.error("Error deleting image:", error);
-        res.status(500).json({ status: false, message: "Internal Server Error" });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ status: false, message: "Internal Server Error" });
     }
 }
 
@@ -253,7 +254,7 @@ const getEditProduct = async (req, res) => {
         console.log('Product:', product); 
 
         if (!product) {
-            return res.status(404).send("Product not found");
+            return res.status(STATUS_CODES.NOT_FOUND).send("Product not found");
         }
 
         const listedCategories = await Category.find({ isListed: true });
@@ -283,7 +284,7 @@ const toggleBlockProduct = async (req, res) => {
         const product = await Product.findById(productId);
 
         if (!product) {
-            return res.status(404).send("Product not found");
+            return res.status(STATUS_CODES.NOT_FOUND).send("Product not found");
         }
 
         product.isBlocked = !product.isBlocked;
@@ -297,7 +298,7 @@ const toggleBlockProduct = async (req, res) => {
         });
     } catch (error) {
         console.error("Error blocking/unblocking product:", error);
-        res.status(500).send("Error blocking/unblocking product");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Error blocking/unblocking product");
     }
 };
 
@@ -309,7 +310,7 @@ const updateProductStatus = async (req, res) => {
         
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).json({ status: 'error', message: 'Product not found' });
+            return res.status(STATUS_CODES.NOT_FOUND).json({ status: 'error', message: 'Product not found' });
         }
 
         product.status = newStatus;
@@ -323,7 +324,7 @@ const updateProductStatus = async (req, res) => {
         console.error('Error updating status:', error);
 
         if (!res.headersSent) {
-            res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ status: 'error', message: 'Internal Server Error' });
         }
     }
 };
@@ -348,7 +349,7 @@ const addProductOffer=async(req,res)=>{
         
     } catch (error) {
         res.redirect("/admin/pageerror");
-        res.status(500).json({status:false,message:"Internal Server Error"});
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({status:false,message:"Internal Server Error"});
         
     }
 }

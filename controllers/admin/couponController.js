@@ -1,5 +1,6 @@
 const Coupon = require('../../models/couponSchema');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const STATUS_CODES = require('../../constants/statusCodes');
 
 
 const loadCoupon = async (req, res) => {
@@ -89,7 +90,7 @@ const updateCoupon = async (req,res)=>{
             if(updatedCoupon !== null){
                 res.send("Coupon updated successfully")
             }else{
-                res.status(500).send("coupon update failed")
+                res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("coupon update failed")
             }
         }
     } catch (error) {
@@ -102,10 +103,10 @@ const deleteCoupon = async (req,res)=>{
      try {
         const id = req.query.id;
         await Coupon.deleteOne({_id:id});
-        res.status(200).send({success:true,message:"Coupon deleted successfully"});
+        res.status(STATUS_CODES.OK).send({success:true,message:"Coupon deleted successfully"});
      } catch (error) {
         console.error("error deleting coupon",error);
-        res.status(500).send({success:false,message:"Failed to delete coupon"})
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send({success:false,message:"Failed to delete coupon"})
      }
 }
 module.exports={

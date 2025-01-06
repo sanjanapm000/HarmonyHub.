@@ -8,7 +8,8 @@ const Coupon = require("../../models/couponSchema");
 const mongoose = require("mongoose");
 const razorpay = require('../../config/razorpay');
 const crypto = require('crypto');
-const Wallet = require("../../models/walletSchema")
+const Wallet = require("../../models/walletSchema");
+const STATUS_CODES = require("../../constants/statusCodes");
 
 
 const grandTotal = async (req, res) => {
@@ -38,7 +39,7 @@ const grandTotal = async (req, res) => {
         return JSON.parse(JSON.stringify(userCartData));
     } catch (error) {
         console.log("Error calculating grand total:", error);
-        res.status(500).send("Error calculating grand total");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Error calculating grand total");
     }
 };
 
@@ -85,12 +86,12 @@ const addToCart = async (req, res) => {
         const productQty = req.body.productQty || 1;
         const userId = req.session.user || req.session.user._id;
         if (!userId) {
-            return res.status(400).send('User is not authenticated');
+            return res.status(STATUS_CODES.BAD_REQUEST).send('User is not authenticated');
         }
         const userCartData = await Cart.find({ userId: req.session.user._id || req.session.user }).populate('productId');
         console.log("userCartData",userCartData);
         if (!mongoose.Types.ObjectId.isValid(productId)) {
-            return res.status(400).send("Invalid product ID format");
+            return res.status(STATUS_CODES.BAD_REQUEST).send("Invalid product ID format");
         }
 
         let existingProduct = await Cart.findOne({ userId, productId });
@@ -98,7 +99,7 @@ const addToCart = async (req, res) => {
         if (!existingProduct) {
             const product = await Product.findById(productId);
             if (!product) {
-                return res.status(404).send('Product not found');
+                return res.status(STATUS_CODES.NOT_FOUND).send('Product not found');
             }
 
             const totalCostPerProduct = productQty * product.salePrice;
@@ -123,7 +124,7 @@ const addToCart = async (req, res) => {
         res.redirect("/mycart");
     } catch (error) {
         console.error("Error in addToCart:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
     }
 };
 
@@ -321,7 +322,7 @@ const checkoutPage = async (req, res) => {
         res.redirect("/addAddress");
     }
 };
-// const checkoutPage = async (req, res) => {
+
 //     try {
 //         console.log('Selected address:', req.body.addressChosen);
 //         const user = await User.findById(req.session.user._id || req.session.user);
@@ -464,7 +465,7 @@ const processOrder = async (req, res) => {
         });
 
         if (!selectedAddressDoc) {
-            return res.status(400).send('Invalid address selection.');
+            return res.status(STATUS_CODES.BAD_REQUEST).send('Invalid address selection.');
         }
 
         const selectedAddress = selectedAddressDoc.address.find(
@@ -472,7 +473,7 @@ const processOrder = async (req, res) => {
         );
 
         if (!selectedAddress) {
-            return res.status(400).send('Address not found in the address array.');
+            return res.status(STATUS_CODES.BAD_REQUEST).send('Address not found in the address array.');
         }
 
         if (!req.session.orderId) {
@@ -507,7 +508,7 @@ const processOrder = async (req, res) => {
         req.session.save((err) => {
             if (err) {
                 console.error('Error saving session:', err);
-                return res.status(500).send('Error saving session.');
+                return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error saving session.');
             }
             console.log('Session after creating/updating order:', req.session);
            
@@ -517,7 +518,7 @@ const processOrder = async (req, res) => {
 
     } catch (error) {
         console.error("Error processing order:", error);
-        res.status(500).send('Error processing your order.');
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error processing your order.');
     }
 };
 
@@ -530,12 +531,12 @@ const processOrder = async (req, res) => {
                 paymentStatus: 'Completed'
             });
             if(req.session.grandTotal >1000){
-                return res.status(400).json({success:false,message:"No COD available for orders above 1000 rupees"});
+                return res.status(STATUS_CODES.BAD_REQUEST).json({success:false,message:"No COD available for orders above 1000 rupees"});
              }
             res.json({ success: true });
         } catch (error) {
             console.error("Error updating order:", error);
-            res.status(500).json({ success: false });
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false });
         }
     };
 
@@ -561,7 +562,7 @@ const processOrder = async (req, res) => {
 
             
             if (!req.session.currentOrder || !req.session.currentOrder._id) {
-                return res.status(400).send('No order found in session');
+                return res.status(STATUS_CODES.BAD_REQUEST).send('No order found in session');
             }
 
             const cartItems = await Cart.find({ userId });
@@ -582,17 +583,17 @@ const processOrder = async (req, res) => {
 
             for (const item of cartData) {
                 if (item.productId.status !== 'Available') {
-                    return res.status(400).send(`Product ${item.productId.productName} is currently not available.`);
+                    return res.status(STATUS_CODES.BAD_REQUEST).send(`Product ${item.productId.productName} is currently not available.`);
                 }
                 if (item.productId.isBlocked===true) {
                     let orderId = req.session.currentOrder._id;
                     await Order.findByIdAndUpdate(orderId,{
                         paymentType: 'Pending',
                     })
-                    return res.status(400).json({success:false,message:"One or more products are blocked"});
+                    return res.status(STATUS_CODES.BAD_REQUEST).json({success:false,message:"One or more products are blocked"});
                 }
                 if (item.productId.quantity < item.productQty) {
-                    return res.status(400).send(`Insufficient stock for product ${item.productId.productName}. Only ${item.productId.quantity} available.`);
+                    return res.status(STATUS_CODES.BAD_REQUEST).send(`Insufficient stock for product ${item.productId.productName}. Only ${item.productId.quantity} available.`);
                 }
             }
 
@@ -614,7 +615,7 @@ const processOrder = async (req, res) => {
             let orderData = await Order.findOne({ _id: orderId });
 
             if (!orderData) {
-                return res.status(400).send('Order not found');
+                return res.status(STATUS_CODES.BAD_REQUEST).send('Order not found');
             }
 
             if (orderData.paymentType === "Pending") {
@@ -639,7 +640,7 @@ const processOrder = async (req, res) => {
 
         } catch (error) {
             console.error("Error in orderPlacedEnd:", error);
-            res.status(500).send("An error occurred while processing your order.");
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("An error occurred while processing your order.");
         }
     };
 
@@ -738,7 +739,7 @@ const processOrder = async (req, res) => {
             }
         } catch (error) {
             console.error('Error in applyCoupon:', error);
-            res.status(500).send("Internal Server Error");
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
         }
     };
 
@@ -757,7 +758,7 @@ const processOrder = async (req, res) => {
             res.json(order);
         } catch (error) {
             console.error('Error creating Razorpay order:', error);
-            res.status(500).json({ error: 'Error creating order' });
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ error: 'Error creating order' });
         }
     };
 
@@ -803,7 +804,7 @@ const processOrder = async (req, res) => {
             }
         } catch (error) {
             console.error('Error verifying payment:', error);
-            res.status(500).json({ success: false });
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false });
         }
     }
 
@@ -845,7 +846,7 @@ const processOrder = async (req, res) => {
 
         } catch (error) {
             console.error('Error removing coupon:', error);
-            res.status(500).json({
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message: 'Error removing coupon'
             });
@@ -866,20 +867,20 @@ const processOrder = async (req, res) => {
             // Validate the order ID
             if (!orderId || !/^[0-9a-fA-F]{24}$/.test(orderId)) {
                 console.error('Invalid Order ID:', orderId);
-                return res.status(400).send('Invalid Order ID');
+                return res.status(STATUS_CODES.BAD_REQUEST).send('Invalid Order ID');
             }
 
             const order = await Order.findById(orderId);
             if (!order) {
                 console.error('Order not found for ID:', orderId);
-                return res.status(404).send('Order not found');
+                return res.status(STATUS_CODES.NOT_FOUND).send('Order not found');
             }
             console.log("ORDER", order);
 
             const user = await User.findById(req.session.user._id || req.session.user);
 
             if (user.wallet < order.grandTotalCost) {
-                return res.status(400).send('Insufficient wallet balance');
+                return res.status(STATUS_CODES.BAD_REQUEST).send('Insufficient wallet balance');
             }
 
 
@@ -941,7 +942,7 @@ const processOrder = async (req, res) => {
             });
         } catch (error) {
             console.error("Error processing wallet payment:", error);
-            res.status(500).send('Error processing payment.');
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error processing payment.');
         }
     };
 
@@ -981,7 +982,7 @@ const processOrder = async (req, res) => {
     
         } catch (error) {
             console.error('Stock validation error:', error);
-            res.status(500).json({
+            res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
                 valid: false,
                 message: 'Error validating stock'
             });
