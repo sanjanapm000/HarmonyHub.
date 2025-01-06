@@ -30,11 +30,11 @@ const toggleWishlist = async (req, res) => {
         if (productIndex === -1) {
             user.wishlist.push(productId);
             await user.save();
-            return res.status(200).json({ status: true, added: true, message: 'Product added to wishlist' });
+            return res.status(STATUS_CODES.OK).json({ status: true, added: true, message: 'Product added to wishlist' });
         } else {
             user.wishlist.splice(productIndex, 1);
             await user.save();
-            return res.status(200).json({ status: true, added: false, message: 'Product removed from wishlist' });
+            return res.status(STATUS_CODES.OK).json({ status: true, added: false, message: 'Product removed from wishlist' });
         }
     } catch (error) {
         console.error(error);
