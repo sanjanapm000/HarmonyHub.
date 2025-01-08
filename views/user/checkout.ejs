@@ -149,42 +149,10 @@
                   /* Remove border radius */
                 }
               </style>
-              <!-- <tr>
-        <td colspan="2">
-          <div class="input-append couponForm">
-            <form id="couponApplyForm">
-              <input class="col-lg-8" name="couponCode" id="appendedInputButton" type="text"
-                placeholder="Enter coupon code">
-              <button class="col-lg-4 btn btn-success" type="submit">Apply!</button>
-            </form>
-          </div>
-        </td>
-      </tr> -->
+        
 
 
-              <!-- End .checkout-discount -->
-
-              <!-- <tr>
-        <td colspan="2">
-          <div class="input-append couponForm">
-            <form id="couponApplyForm">
-              <input class="col-lg-8" name="couponCode" id="appendedInputButton" type="text"
-                placeholder="Enter coupon code">
-              <button class="col-lg-4 btn btn-success" type="submit">Apply!</button>
-            </form>
-          </div>
-        </td>
-      </tr> -->
-
-
-
-
-
-
-
-
-
-
+      
               <!-- End .checkout-discount -->
 
               <body>
@@ -456,12 +424,7 @@
 
 
 
-                      <!-- <div class="card-paynemt-box payment-method">
-                        <label class="radio-inline" for="CashOnDelivery" aria-controls="CashOnDeliveryCollapse">
-                          <input name="radios" id="COD" value="COD" type="radio">Cash On Delivery
-                        </label>
-                      </div>
-                      <div id="codMessage" style="display: none;">Above 4000, no COD we provide</div> -->
+                     
                       <div class="payment-methods">
                         <div class="form-check">
                           <input class="form-check-input" type="radio" name="paymentMethod" id="COD" value="COD">
@@ -632,14 +595,7 @@
 
           const data = await response.json();
 
-          // const blockedResponse = await fetch('/checkout/orderPlacedEnd',{
-          //   method: 'POST',
-          //     headers: {
-          //         'Content-Type': 'application/json',
-          //     },
-          // })
-
-          // const blockedData = await blockedResponse.json();
+         
            
          
 
@@ -660,14 +616,7 @@
             //  Show SweetAlert if the order is not allowed due to blocked products
 
           }
-          // else if(blockedData.success === false){
-          //   Swal.fire({
-          //       icon: 'error',
-          //       title: 'Product blocked',
-          //       text: blockedData.message,  // Message from the server (No COD for grandTotal > 1000)
-          //       confirmButtonText: 'OK'
-          //     });
-          // }
+       
          
           else {
             // Continue with the order placed success flow

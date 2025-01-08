@@ -31,14 +31,7 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
     res.redirect('/');
 
 });
-router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-router.get('/auth/facebook/callback', 
-    passport.authenticate('facebook', { failureRedirect: '/signup' }),
-     (req, res) => {
-        req.session.user = {_id:req.user._id,name:req.user.name,email:req.user.email};
-        res.redirect('/');
-    }
-);
+
 
 router.get('/login',userController.loadLogin);
 router.post('/login',userController.login);

@@ -121,21 +121,7 @@
             <!-- <p><strong>Brand:</strong> <%= product.brand %></p> -->
             <p><strong>Category:</strong> <%= product.category.name %></p>
 
-            <!-- Rating using stars -->
-            <!-- <div class="rating">
-                <span>Rating: </span>
-                <div class="star-rating">
-                    <% for (let i = 1; i <= 5; i++) { %>
-                        <% if (i <= Math.floor(product.rating)) { %>
-                            <i class="fas fa-star"></i> <!-- Filled star -->
-                        <!--  <% } else if (i <= product.rating) { %>
-                            <i class="fas fa-star-half-alt"></i> <!-- Half star -->
-                        <!-- <% } else { %>-->
-                          <!--  <i class="far fa-star"></i> <!-- Empty star -->
-                    <!--   <% } %>
-                    <% } %>
-                </div>
-            </div> -->
+           
 
             <h3>Price: ₹<%= product.salePrice %> <del>₹<%= product.regularPrice %></del></h3>
             <h4 style="color: green;"><%= product.productOffer %>% OFF</h4>
